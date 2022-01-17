@@ -3,7 +3,9 @@ package com.cempod.crch;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.motion.widget.MotionLayout;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -15,6 +17,9 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class LoginActivity extends AppCompatActivity {
     TabLayout tabLayout;
@@ -71,6 +76,10 @@ mAuth.signInWithEmailAndPassword(emailText.getText().toString(),passwordText.get
         if (task.isSuccessful()) {
            // Toast.makeText(getApplicationContext(), "Успешно",
                    // Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent("login-complete");
+            // You can also include some extra data.
+            //intent.putExtra("message", "This is my message!");
+            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
             onBackPressed();
         } else {
             // If sign in fails, display a message to the user.
@@ -95,6 +104,16 @@ mAuth.signInWithEmailAndPassword(emailText.getText().toString(),passwordText.get
                                         if (task.isSuccessful()) {
                                            // Toast.makeText(getApplicationContext(), "Успешно",
                                                    // Toast.LENGTH_SHORT).show();
+
+                                            User user = new User(FirebaseAuth.getInstance().getCurrentUser().getUid().toString(),nicknameText.getText().toString(),0);
+                                            DatabaseReference mDatabase;
+// ...
+                                            mDatabase = FirebaseDatabase.getInstance().getReference();
+                                            mDatabase.child("users").child(user.getUserID()).setValue(user);
+                                            Intent intent = new Intent("login-complete");
+                                            // You can also include some extra data.
+                                            //intent.putExtra("message", "This is my message!");
+                                            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
                                             onBackPressed();
                                         } else {
                                             // If sign in fails, display a message to the user.

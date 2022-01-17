@@ -1,47 +1,39 @@
 package com.cempod.crch;
 
+import java.util.Date;
+
 public class Message {
-    private  String text;
-    private String publicKey;
-    private  String senderID;
-    private  String receiverID;
-
-public Message(String text, String publicKey, String senderID, String receiverID){
-this.text = text;
-this.publicKey = publicKey;
-this.receiverID = receiverID;
-this.senderID = senderID;
-}
-
-    public String getPublicKey() {
-        return publicKey;
+    private String time;
+    private String text;
+    private  String sender;
+    public Message(String text, String time, String sender){
+        this.text = text;
+        this.time = time;
+        this.sender = sender;
     }
-
-    public String getReceiverID() {
-        return receiverID;
-    }
-
-    public String getSenderID() {
-        return senderID;
-    }
+    public Message(){}
 
     public String getText() {
         return text;
     }
 
-    public void setPublicKey(String publicKey) {
-        this.publicKey = publicKey;
-    }
-
-    public void setReceiverID(String receiverID) {
-        this.receiverID = receiverID;
-    }
-
-    public void setSenderID(String senderID) {
-        this.senderID = senderID;
+    public String getTime() {
+        return time;
     }
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public String getSender() {
+        return sender;
+    }
+
+    public void setSender(String sender) {
+        this.sender = sender;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
     }
 }

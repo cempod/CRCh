@@ -3,8 +3,12 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/programming/CRCh/app/src/main/res/layout/activity_chat.xml" value="0.25" />
         <entry key="..\:/programming/CRCh/app/src/main/res/layout/activity_login.xml" value="0.34270833333333334" />
         <entry key="..\:/programming/CRCh/app/src/main/res/layout/activity_main.xml" value="0.25" />
+        <entry key="..\:/programming/CRCh/app/src/main/res/layout/in_message_card.xml" value="0.2" />
+        <entry key="..\:/programming/CRCh/app/src/main/res/layout/message_card.xml" value="0.25" />
+        <entry key="..\:/programming/CRCh/app/src/main/res/layout/out_message_card.xml" value="0.33" />
         <entry key="..\:/programming/CRCh/app/src/main/res/layout/user_recycler_card.xml" value="0.34270833333333334" />
       </map>
     </option>

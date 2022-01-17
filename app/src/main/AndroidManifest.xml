@@ -10,9 +10,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CRCh">
         <activity
+            android:name=".Chat"
+            android:exported="true" />
+        <activity
             android:name=".LoginActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustResize"/>
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

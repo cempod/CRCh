@@ -1,5 +1,7 @@
 package com.cempod.crch;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +22,7 @@ public class UsersAdapter extends RecyclerView.Adapter {
         public UserHolder(@NonNull View itemView) {
             super(itemView);
             username = itemView.findViewById(R.id.usernameText);
+
         }
     }
 
@@ -33,7 +36,19 @@ public class UsersAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         ((UserHolder)holder).username.setText(users.get(position).getUserName());
+        Context context = holder.itemView.getContext();
+        ((UserHolder)holder).itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(context,Chat.class);
+                intent.putExtra("Id", users.get(position).getUserID());
+                intent.putExtra("Name",users.get(position).getUserName());
+                context.startActivity(intent);
+            }
+        });
     }
+
+
 
     @Override
     public int getItemCount() {
