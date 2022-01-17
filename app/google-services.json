@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "928176580057",
+    "project_id": "crch-ed291",
+    "storage_bucket": "crch-ed291.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:928176580057:android:811f8f952f24df4e7765c8",
+        "android_client_info": {
+          "package_name": "com.cempod.crch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "928176580057-h9trhtn31jr4pk2sp0gjb5c9mtvb840u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADDWeyEy0xQ0o5uNHtE4VCElbveGQ06CA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "928176580057-h9trhtn31jr4pk2sp0gjb5c9mtvb840u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
