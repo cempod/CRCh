@@ -19,9 +19,13 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 
 public class Chat extends AppCompatActivity {
@@ -29,6 +33,8 @@ public class Chat extends AppCompatActivity {
     TextInputEditText messageTextEdit;
     RecyclerView messageRecycler;
 ArrayList<Message> messages = new ArrayList<>();
+    ArrayList<String> ids = new ArrayList<>();
+    String userID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +43,7 @@ ArrayList<Message> messages = new ArrayList<>();
         setContentView(R.layout.activity_chat);
         Intent intent = getIntent();
         String name = intent.getStringExtra("Name");
-        String userID = intent.getStringExtra("Id");
+        userID = intent.getStringExtra("Id");
         getSupportActionBar().setTitle(name);
         messageRecycler = findViewById(R.id.messageRecycler);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -46,6 +52,31 @@ ArrayList<Message> messages = new ArrayList<>();
         messageRecycler.setAdapter(adapter);
         sendButton = findViewById(R.id.sendButton);
         messageTextEdit = findViewById(R.id.messageTextEdit);
+
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom());
+        ValueEventListener eventListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if(!snapshot.exists()){
+                    DatabaseReference mDatabase;
+// ...
+                    mDatabase = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom()).child("users");
+                    mDatabase.child(FirebaseAuth.getInstance().getCurrentUser().getUid().toString()).setValue(FirebaseAuth.getInstance().getCurrentUser().getUid().toString());
+
+                    mDatabase.child(userID).setValue(name);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        };
+        databaseReference.addListenerForSingleValueEvent(eventListener);
+
+
+
+
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -53,14 +84,13 @@ ArrayList<Message> messages = new ArrayList<>();
                 DatabaseReference mDatabase;
 // ...
                 mDatabase = FirebaseDatabase.getInstance().getReference();
-                mDatabase.child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).push().setValue(message);
+                mDatabase.child("rooms").child(getRoom()).child("messages").push().setValue(message);
            messageTextEdit.setText("");
             }
 
         });
 
-// ...
-        //mDatabase = FirebaseDatabase.getInstance().getReference(FirebaseAuth.getInstance().getCurrentUser().getUid());
+
 
         ChildEventListener childEventListener = new ChildEventListener() {
             @Override
@@ -91,6 +121,19 @@ ArrayList<Message> messages = new ArrayList<>();
             }
         };
         DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-        mDatabase.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID).addChildEventListener(childEventListener);
+        mDatabase.child("rooms").child(getRoom()).child("messages").addChildEventListener(childEventListener);
     }
+
+    public String getRoom() {
+        String s1 = userID;
+        String s2 = FirebaseAuth.getInstance().getCurrentUser().getUid();
+    int compare = s1.compareTo(s2);
+    if(compare<0){
+return s1+s2;
+    }else{
+       return s2+s1;
+    }
+
+    }
+
 }

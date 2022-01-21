@@ -40,7 +40,7 @@ return new MessageHolder(view);
 
     @Override
     public int getItemViewType(int position) {
-        if(messages.get(position).getSender()==userID){
+        if(messages.get(position).getSender().equals(userID)){
             return 0;
         }else return 1;
     }
