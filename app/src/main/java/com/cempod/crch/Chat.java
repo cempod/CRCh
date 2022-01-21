@@ -50,6 +50,7 @@ ArrayList<Message> messages = new ArrayList<>();
         ChatAdapter adapter = new ChatAdapter(messages,FirebaseAuth.getInstance().getCurrentUser().getUid());
         messageRecycler.setLayoutManager(linearLayoutManager);
         messageRecycler.setAdapter(adapter);
+        linearLayoutManager.setStackFromEnd(true);
         sendButton = findViewById(R.id.sendButton);
         messageTextEdit = findViewById(R.id.messageTextEdit);
 
@@ -98,6 +99,7 @@ ArrayList<Message> messages = new ArrayList<>();
                 Message message = snapshot.getValue(Message.class);
                 messages.add(message);
                 messageRecycler.getAdapter().notifyDataSetChanged();
+                messageRecycler.smoothScrollToPosition(adapter.getItemCount());
             }
 
             @Override
