@@ -20,6 +20,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 public class LoginActivity extends AppCompatActivity {
     TabLayout tabLayout;
@@ -74,6 +75,7 @@ mAuth.signInWithEmailAndPassword(emailText.getText().toString(),passwordText.get
     @Override
     public void onComplete(@NonNull Task<AuthResult> task) {
         if (task.isSuccessful()) {
+
            // Toast.makeText(getApplicationContext(), "Успешно",
                    // Toast.LENGTH_SHORT).show();
             Intent intent = new Intent("login-complete");
