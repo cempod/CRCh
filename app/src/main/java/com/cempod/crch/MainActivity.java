@@ -111,9 +111,9 @@ ArrayList<User> users = new ArrayList<>();
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
-            if (isServiceRunning(NotificationService.class)){}else{
-startService(new Intent(this,NotificationService.class));}
-
+          //  if (isServiceRunning(NotificationService.class)){}else{
+//startService(new Intent(this,NotificationService.class));}
+            setToken();
             getUsers();
         } else {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
@@ -141,10 +141,33 @@ startService(new Intent(this,NotificationService.class));}
         @Override
         public void onReceive(Context context, Intent intent) {
             // Get extra data included in the Intent
+            setToken();
            getUsers();
 
         }
     };
+
+    public void setToken(){
+        DatabaseReference databaseReference;
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (!task.isSuccessful()) {
+
+                            return;
+                        }
+
+                        // Get new FCM registration token
+                        String token = task.getResult();
+databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("token").setValue(token);
+
+
+                    }
+                });
+
+    }
 
     public void getUsers(){
         DatabaseReference mDatabase;
