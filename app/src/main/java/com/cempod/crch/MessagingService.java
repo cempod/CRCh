@@ -2,6 +2,8 @@ package com.cempod.crch;
 
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.Intent;
 
 import androidx.annotation.NonNull;
@@ -15,6 +17,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+
+import java.util.Map;
 
 public class MessagingService extends FirebaseMessagingService {
 
@@ -34,16 +38,30 @@ public class MessagingService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
-        NotificationCompat.Builder builder =
-                new NotificationCompat.Builder(this, "CRCh")
-                        .setSmallIcon(R.mipmap.ic_launcher)
-                        .setContentTitle(remoteMessage.getNotification().getTitle())
-                        .setContentText(remoteMessage.getNotification().getBody());
-        Notification notification = builder.build();
 
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.notify(1, notification);
+            Map<String, String> data = remoteMessage.getData();
+        Intent intent = new Intent(getApplicationContext(),Chat.class);
+        intent.putExtra("Id", data.get("fromId"));
+        intent.putExtra("Name",data.get("title"));
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(Chat.class);
+        stackBuilder.addNextIntent(intent);
+
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            NotificationCompat.Builder builder =
+                    new NotificationCompat.Builder(this, "CRCh")
+                            .setSmallIcon(R.drawable.outline_mail_24)
+                            .setContentTitle("Новое сообщение от "+data.get("title"))
+                            .setContentText("Не прочитано сообщений: "+data.get("body"))
+                    .setContentIntent(resultPendingIntent);
+            Notification notification = builder.build();
+
+            NotificationManager notificationManager =
+                    (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            notificationManager.notify(1, notification);
+       // }
         super.onMessageReceived(remoteMessage);
     }
 }
