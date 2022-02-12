@@ -5,6 +5,8 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
@@ -19,6 +21,7 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Map;
+import java.util.prefs.Preferences;
 
 public class MessagingService extends FirebaseMessagingService {
 
@@ -43,6 +46,22 @@ public class MessagingService extends FirebaseMessagingService {
         Intent intent = new Intent(getApplicationContext(),Chat.class);
         intent.putExtra("Id", data.get("fromId"));
         intent.putExtra("Name",data.get("title"));
+
+        SharedPreferences sharedPreferences;
+        sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
+        int lastNotificationId = sharedPreferences.getInt("lastNotificationId",0);
+        int userNotificationId = sharedPreferences.getInt(data.get("fromId"),-1);
+        if(userNotificationId == -1){
+            userNotificationId = lastNotificationId+1;
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt("lastNotificationId",userNotificationId);
+            editor.putInt(data.get("fromId"),userNotificationId);
+            editor.commit();
+        }
+
+        String openedChatId = sharedPreferences.getString("openedChatId","");
+
+
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(Chat.class);
         stackBuilder.addNextIntent(intent);
@@ -55,13 +74,15 @@ public class MessagingService extends FirebaseMessagingService {
                             .setSmallIcon(R.drawable.outline_mail_24)
                             .setContentTitle("Новое сообщение от "+data.get("title"))
                             .setContentText("Не прочитано сообщений: "+data.get("body"))
-                    .setContentIntent(resultPendingIntent);
+                    .setContentIntent(resultPendingIntent)
+                    .setAutoCancel(true);
             Notification notification = builder.build();
 
             NotificationManager notificationManager =
                     (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            notificationManager.notify(1, notification);
-       // }
+            if(openedChatId.equals(data.get("fromId"))){}else{
+            notificationManager.notify(userNotificationId, notification);
+        }
         super.onMessageReceived(remoteMessage);
     }
 }

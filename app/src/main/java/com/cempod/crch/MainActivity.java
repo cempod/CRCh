@@ -18,6 +18,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -75,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
 RecyclerView recyclerView;
 ArrayList<User> users = new ArrayList<>();
     ArrayList<RecyclerUser> recycleUsers = new ArrayList<>();
+    SharedPreferences.Editor editor;
+    SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +89,16 @@ ArrayList<User> users = new ArrayList<>();
         recyclerView.setLayoutManager(linearLayoutManager);
         UsersAdapter adapter = new UsersAdapter(recycleUsers);
         recyclerView.setAdapter(adapter);
+
+
+        sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
+        int lastNotificationId = sharedPreferences.getInt("lastNotificationId",-1);
+        if (lastNotificationId == -1){
+            editor = sharedPreferences.edit();
+            editor.putInt("lastNotificationId",0);
+            editor.putString("openedChatId","");
+            editor.commit();
+        }
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -262,7 +275,17 @@ recyclerView.getAdapter().notifyDataSetChanged();
     }
 
     @Override
+    protected void onPostResume() {
+        editor = sharedPreferences.edit();
+        editor.putString("openedChatId","");
+        editor.commit();
+        
+        super.onPostResume();
+    }
+
+    @Override
     protected void onDestroy() {
+
         // Unregister since the activity is about to be closed.
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         super.onDestroy();
