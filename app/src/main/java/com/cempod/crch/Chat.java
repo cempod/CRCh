@@ -6,10 +6,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.NotificationManager;
 import android.content.Intent;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
@@ -42,10 +40,12 @@ public class Chat extends AppCompatActivity {
 ArrayList<Message> messages = new ArrayList<>();
     ArrayList<String> ids = new ArrayList<>();
     String userID;
+
     ChatAdapter adapter;
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
     NotificationManager notificationManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,20 +53,14 @@ ArrayList<Message> messages = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
         setContentView(R.layout.activity_chat);
         Intent intent = getIntent();
+
         notificationManager =
                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
        sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
 
         String name = intent.getStringExtra("Name");
         userID = intent.getStringExtra("Id");
-        editor = sharedPreferences.edit();
-        editor.putString("openedChatId",userID);
-        editor.commit();
         getSupportActionBar().setTitle(name);
-        int notificationId = sharedPreferences.getInt(userID,-1);
-        if(notificationId != -1){
-            notificationManager.cancel(notificationId);
-        }
         messageRecycler = findViewById(R.id.messageRecycler);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         adapter = new ChatAdapter(messages,FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -237,6 +231,7 @@ return s1+s2;
 
     }
 
+
     @Override
     protected void onPause() {
         editor.putString("openedChatId","");
@@ -279,4 +274,5 @@ return s1+s2;
        //                 Toast.LENGTH_SHORT).show();
         super.onDestroy();
     }
+
 }
