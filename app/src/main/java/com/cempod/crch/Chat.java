@@ -6,10 +6,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.NotificationManager;
 import android.content.Intent;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
@@ -38,35 +36,15 @@ ArrayList<Message> messages = new ArrayList<>();
     ArrayList<String> ids = new ArrayList<>();
     String userID;
 
-    ChatAdapter adapter;
-    SharedPreferences sharedPreferences;
-    SharedPreferences.Editor editor;
-    NotificationManager notificationManager;
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
         setContentView(R.layout.activity_chat);
         Intent intent = getIntent();
-
-        notificationManager =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-       sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
-
-
         String name = intent.getStringExtra("Name");
         userID = intent.getStringExtra("Id");
-        editor = sharedPreferences.edit();
-        editor.putString("openedChatId",userID);
-        editor.commit();
         getSupportActionBar().setTitle(name);
-        int notificationId = sharedPreferences.getInt(userID,-1);
-        if(notificationId != -1){
-            notificationManager.cancel(notificationId);
-        }
         messageRecycler = findViewById(R.id.messageRecycler);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         ChatAdapter adapter = new ChatAdapter(messages,FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -158,50 +136,6 @@ return s1+s2;
        return s2+s1;
     }
 
-    }
-
-
-    @Override
-    protected void onPause() {
-        editor.putString("openedChatId","");
-        editor.commit();
-       /* DatabaseReference inReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID);
-
-        inReference.removeEventListener(inputChildListener);
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-        mDatabase.child("rooms").child(getRoom()).child("messages").removeEventListener(childEventListener);
-        DatabaseReference outReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        outReference.removeEventListener(outChildListener);
-       Toast.makeText(getApplicationContext(), "paused",
-                       Toast.LENGTH_SHORT).show();*/
-
-        super.onPause();
-    }
-
-    @Override
-    protected void onPostResume() {
-        editor.putString("openedChatId",userID);
-        editor.commit();
-        int notificationId = sharedPreferences.getInt(userID,-1);
-        if(notificationId != -1){
-            notificationManager.cancel(notificationId);
-        }
-        super.onPostResume();
-    }
-
-    @Override
-    protected void onDestroy() {
-        DatabaseReference inReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID);
-        editor.putString("openedChatId","");
-        editor.commit();
-        inReference.removeEventListener(inputChildListener);
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-        mDatabase.child("rooms").child(getRoom()).child("messages").removeEventListener(childEventListener);
-        DatabaseReference outReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        outReference.removeEventListener(outChildListener);
-       // Toast.makeText(getApplicationContext(), "closed",
-       //                 Toast.LENGTH_SHORT).show();
-        super.onDestroy();
     }
 
 }
