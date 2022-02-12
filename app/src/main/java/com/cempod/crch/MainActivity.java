@@ -1,8 +1,5 @@
 package com.cempod.crch;
 
-import static com.google.firebase.crashlytics.buildtools.reloc.org.apache.http.client.methods.RequestBuilder.post;
-import static com.google.firebase.messaging.RemoteMessage.Builder.*;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,7 +7,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -20,15 +16,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
-import android.telecom.Call;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
-import com.google.android.gms.common.api.Response;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -69,15 +62,15 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.security.auth.callback.Callback;
-
 public class MainActivity extends AppCompatActivity {
 
 RecyclerView recyclerView;
 ArrayList<User> users = new ArrayList<>();
+
     ArrayList<RecyclerUser> recycleUsers = new ArrayList<>();
     SharedPreferences.Editor editor;
     SharedPreferences sharedPreferences;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +80,7 @@ ArrayList<User> users = new ArrayList<>();
         recyclerView = findViewById(R.id.recyclerView);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(linearLayoutManager);
-        UsersAdapter adapter = new UsersAdapter(recycleUsers);
+        UsersAdapter adapter = new UsersAdapter(users);
         recyclerView.setAdapter(adapter);
 
 
@@ -103,7 +96,7 @@ ArrayList<User> users = new ArrayList<>();
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel("CRCh", "Messages",
                     NotificationManager.IMPORTANCE_HIGH);
             channel.setDescription("Notifications for messages");
@@ -111,22 +104,22 @@ ArrayList<User> users = new ArrayList<>();
             channel.setLightColor(Color.RED);
             channel.enableVibration(false);
             notificationManager.createNotificationChannel(channel);
-
-            NotificationChannel channel1 = new NotificationChannel("CRChService", "Messages service",
-                    NotificationManager.IMPORTANCE_HIGH);
-            channel.setDescription("You can hide this notification");
-            channel.enableLights(true);
-            channel.setLightColor(Color.RED);
-            channel.enableVibration(false);
-            notificationManager.createNotificationChannel(channel1);
-
         }
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
+
           //  if (isServiceRunning(NotificationService.class)){}else{
 //startService(new Intent(this,NotificationService.class));}
             setToken();
+
+
+
+// Send a message to the device corresponding to the provided
+// registration token.
+
+
+
             getUsers();
         } else {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
@@ -139,15 +132,7 @@ ArrayList<User> users = new ArrayList<>();
 
     }
 
-    private boolean isServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
+
 
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
 
@@ -185,7 +170,15 @@ databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser
     public void getUsers(){
         DatabaseReference mDatabase;
 
-
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+            @Override
+            public void onComplete(@NonNull Task<String> task) {
+                String token;
+           token = task.getResult();
+               DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("token");
+                databaseReference.setValue(token);
+            }
+        });
 
 // ...
         mDatabase = FirebaseDatabase.getInstance().getReference("users");
@@ -194,8 +187,6 @@ databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 User user = snapshot.getValue(User.class);
 users.add(user);
-RecyclerUser recyclerUser = new RecyclerUser(user.getUserID(),user.getUserName(),user.getUserLogo(),0);
-recycleUsers.add(recyclerUser);
 recyclerView.getAdapter().notifyDataSetChanged();
             }
 
@@ -204,7 +195,7 @@ recyclerView.getAdapter().notifyDataSetChanged();
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 User user = snapshot.getValue(User.class);
                 for(int i = 0; i<users.size();i++){
-                    if(users.get(i).getUserID().equals(user.getUserID())){
+                    if(users.get(i).getUserID()==user.getUserID()){
                         users.get(i).setUserName(user.getUserName());
                         users.get(i).setUserLogo(user.getUserLogo());
                         break;
@@ -230,48 +221,6 @@ recyclerView.getAdapter().notifyDataSetChanged();
             }
         };
         mDatabase.addChildEventListener(childEventListener);
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        databaseReference.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                int notify = Integer.parseInt(snapshot.child("messages").getValue().toString());
-                for(int i = 0; i<recycleUsers.size();i++){
-                    if(recycleUsers.get(i).getUserID().equals(snapshot.getKey())){
-                        recycleUsers.get(i).setNotify(notify);
-                        break;
-                    }
-                }
-                recyclerView.getAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                int notify = Integer.parseInt(snapshot.child("messages").getValue().toString());
-                for(int i = 0; i<recycleUsers.size();i++){
-                    if(recycleUsers.get(i).getUserID().equals(snapshot.getKey())){
-                        recycleUsers.get(i).setNotify(notify);
-                        break;
-                    }
-                }
-                recyclerView.getAdapter().notifyDataSetChanged();
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-
     }
 
     @Override

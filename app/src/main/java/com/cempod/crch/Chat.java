@@ -13,7 +13,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
@@ -24,9 +23,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,16 +32,18 @@ import java.util.Date;
 
 public class Chat extends AppCompatActivity {
     ImageButton sendButton;
-    int count;
     TextInputEditText messageTextEdit;
     RecyclerView messageRecycler;
 ArrayList<Message> messages = new ArrayList<>();
     ArrayList<String> ids = new ArrayList<>();
     String userID;
+
     ChatAdapter adapter;
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
     NotificationManager notificationManager;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,9 +51,11 @@ ArrayList<Message> messages = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
         setContentView(R.layout.activity_chat);
         Intent intent = getIntent();
+
         notificationManager =
                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
        sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
+
 
         String name = intent.getStringExtra("Name");
         userID = intent.getStringExtra("Id");
@@ -69,19 +69,12 @@ ArrayList<Message> messages = new ArrayList<>();
         }
         messageRecycler = findViewById(R.id.messageRecycler);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
-        adapter = new ChatAdapter(messages,FirebaseAuth.getInstance().getCurrentUser().getUid());
+        ChatAdapter adapter = new ChatAdapter(messages,FirebaseAuth.getInstance().getCurrentUser().getUid());
         messageRecycler.setLayoutManager(linearLayoutManager);
         messageRecycler.setAdapter(adapter);
         linearLayoutManager.setStackFromEnd(true);
         sendButton = findViewById(R.id.sendButton);
         messageTextEdit = findViewById(R.id.messageTextEdit);
-        count = 0;
-        DatabaseReference outReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        outReference.addChildEventListener(outChildListener);
-
-        DatabaseReference inReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID);
-
-        inReference.addChildEventListener(inputChildListener);
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom());
         ValueEventListener eventListener = new ValueEventListener() {
@@ -113,11 +106,8 @@ ArrayList<Message> messages = new ArrayList<>();
                 Message message = new Message(messageTextEdit.getText().toString(), dateFormat.format(new Date()).toString(),FirebaseAuth.getInstance().getCurrentUser().getUid());
                 DatabaseReference mDatabase;
 // ...
-                count = count+1;
                 mDatabase = FirebaseDatabase.getInstance().getReference();
-                mDatabase.child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("messages").setValue(count);
                 mDatabase.child("rooms").child(getRoom()).child("messages").push().setValue(message);
-
            messageTextEdit.setText("");
             }
 
@@ -125,105 +115,38 @@ ArrayList<Message> messages = new ArrayList<>();
 
 
 
+        ChildEventListener childEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                Message message = snapshot.getValue(Message.class);
+                messages.add(message);
+                messageRecycler.getAdapter().notifyDataSetChanged();
+                messageRecycler.smoothScrollToPosition(adapter.getItemCount());
+            }
 
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
+            }
 
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        };
         DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
         mDatabase.child("rooms").child(getRoom()).child("messages").addChildEventListener(childEventListener);
     }
-
-    ChildEventListener outChildListener = new ChildEventListener() {
-        @Override
-        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            count = Integer.parseInt(snapshot.getValue().toString());
-            //   Toast.makeText(getApplicationContext(), "added"+count,
-            //           Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            count = Integer.parseInt(snapshot.getValue().toString());
-            //  Toast.makeText(getApplicationContext(), "changed"+count,
-            //          Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-        }
-
-        @Override
-        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-        }
-
-        @Override
-        public void onCancelled(@NonNull DatabaseError error) {
-            Toast.makeText(getApplicationContext(), error.toString(),
-                    Toast.LENGTH_SHORT).show();
-        }
-    };
-
-    ChildEventListener inputChildListener = new ChildEventListener() {
-        @Override
-        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            DatabaseReference mDatabase;
-            mDatabase = FirebaseDatabase.getInstance().getReference();
-            mDatabase.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID).child("messages").setValue(0);
-        }
-
-        @Override
-        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            DatabaseReference mDatabase;
-            mDatabase = FirebaseDatabase.getInstance().getReference();
-            mDatabase.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID).child("messages").setValue(0);
-        }
-
-        @Override
-        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-        }
-
-        @Override
-        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-        }
-
-        @Override
-        public void onCancelled(@NonNull DatabaseError error) {
-
-        }
-    };
-
-    ChildEventListener childEventListener = new ChildEventListener() {
-        @Override
-        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            Message message = snapshot.getValue(Message.class);
-            messages.add(message);
-            messageRecycler.getAdapter().notifyDataSetChanged();
-            messageRecycler.smoothScrollToPosition(adapter.getItemCount());
-        }
-
-        @Override
-        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-        }
-
-        @Override
-        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-        }
-
-        @Override
-        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-        }
-
-        @Override
-        public void onCancelled(@NonNull DatabaseError error) {
-
-        }
-    };
 
     public String getRoom() {
         String s1 = userID;
@@ -236,6 +159,7 @@ return s1+s2;
     }
 
     }
+
 
     @Override
     protected void onPause() {
@@ -279,4 +203,5 @@ return s1+s2;
        //                 Toast.LENGTH_SHORT).show();
         super.onDestroy();
     }
+
 }
