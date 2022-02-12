@@ -18,6 +18,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -61,11 +62,9 @@ public class MainActivity extends AppCompatActivity {
 
 RecyclerView recyclerView;
 ArrayList<User> users = new ArrayList<>();
-
     ArrayList<RecyclerUser> recycleUsers = new ArrayList<>();
     SharedPreferences.Editor editor;
     SharedPreferences sharedPreferences;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +76,16 @@ ArrayList<User> users = new ArrayList<>();
         recyclerView.setLayoutManager(linearLayoutManager);
         UsersAdapter adapter = new UsersAdapter(recycleUsers);
         recyclerView.setAdapter(adapter);
+
+
+        sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
+        int lastNotificationId = sharedPreferences.getInt("lastNotificationId",-1);
+        if (lastNotificationId == -1){
+            editor = sharedPreferences.edit();
+            editor.putInt("lastNotificationId",0);
+            editor.putString("openedChatId","");
+            editor.commit();
+        }
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -102,8 +111,9 @@ ArrayList<User> users = new ArrayList<>();
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
-
- 
+          //  if (isServiceRunning(NotificationService.class)){}else{
+//startService(new Intent(this,NotificationService.class));}
+            setToken();
             getUsers();
         } else {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
@@ -131,10 +141,33 @@ ArrayList<User> users = new ArrayList<>();
         @Override
         public void onReceive(Context context, Intent intent) {
             // Get extra data included in the Intent
+            setToken();
            getUsers();
 
         }
     };
+
+    public void setToken(){
+        DatabaseReference databaseReference;
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (!task.isSuccessful()) {
+
+                            return;
+                        }
+
+                        // Get new FCM registration token
+                        String token = task.getResult();
+databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("token").setValue(token);
+
+
+                    }
+                });
+
+    }
 
     public void getUsers(){
         DatabaseReference mDatabase;
@@ -229,7 +262,17 @@ recyclerView.getAdapter().notifyDataSetChanged();
     }
 
     @Override
+    protected void onPostResume() {
+        editor = sharedPreferences.edit();
+        editor.putString("openedChatId","");
+        editor.commit();
+        
+        super.onPostResume();
+    }
+
+    @Override
     protected void onDestroy() {
+
         // Unregister since the activity is about to be closed.
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         super.onDestroy();
