@@ -86,6 +86,7 @@ ArrayList<User> users = new ArrayList<>();
             editor.putString("openedChatId","");
             editor.commit();
         }
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -170,26 +171,57 @@ databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser
     }
 
     public void getUsers(){
-        DatabaseReference mDatabase;
+        DatabaseReference mDatabase, cDatabase, nDatabase;
 
 
 
 // ...
-        mDatabase = FirebaseDatabase.getInstance().getReference("users");
+        mDatabase = FirebaseDatabase.getInstance().getReference("chats").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        cDatabase = FirebaseDatabase.getInstance().getReference("users");
+        nDatabase = FirebaseDatabase.getInstance().getReference("notifications/"+FirebaseAuth.getInstance().getCurrentUser().getUid());
         ChildEventListener childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-User user = snapshot.getValue(User.class);
+
+                String id = snapshot.getKey();
+                cDatabase.child(id).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        User user = snapshot.getValue(User.class);
 users.add(user);
-RecyclerUser recyclerUser = new RecyclerUser(user.getUserID(),user.getUserName(),user.getUserLogo(),0);
-recycleUsers.add(recyclerUser);
-recyclerView.getAdapter().notifyDataSetChanged();
+                        RecyclerUser recyclerUser = new RecyclerUser(user.getUserID(),user.getUserName(),user.getUserLogo(),0);
+
+                        nDatabase.child(id).child("messages").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                int notify = Integer.parseInt(snapshot.getValue().toString());
+                                recyclerUser.setNotify(notify);
+                                recycleUsers.add(recyclerUser);
+                                recyclerView.getAdapter().notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+                                recycleUsers.add(recyclerUser);
+                                recyclerView.getAdapter().notifyDataSetChanged();
+                            }
+                        });
+
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
             }
 
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                User user = snapshot.getValue(User.class);
+               /* User user = snapshot.getValue(User.class);
                 for(int i = 0; i<users.size();i++){
                     if(users.get(i).getUserID().equals(user.getUserID())){
                         users.get(i).setUserName(user.getUserName());
@@ -198,7 +230,7 @@ recyclerView.getAdapter().notifyDataSetChanged();
                     }
                 }
                 recyclerView.getAdapter().notifyDataSetChanged();
-
+*/
             }
 
             @Override
@@ -218,55 +250,61 @@ recyclerView.getAdapter().notifyDataSetChanged();
         };
         mDatabase.addChildEventListener(childEventListener);
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        databaseReference.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                int notify = Integer.parseInt(snapshot.child("messages").getValue().toString());
-                for(int i = 0; i<recycleUsers.size();i++){
-                    if(recycleUsers.get(i).getUserID().equals(snapshot.getKey())){
-                        recycleUsers.get(i).setNotify(notify);
-                        break;
-                    }
-                }
-                recyclerView.getAdapter().notifyDataSetChanged();
-            }
+        databaseReference.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addChildEventListener(notifyListener);
 
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                int notify = Integer.parseInt(snapshot.child("messages").getValue().toString());
-                for(int i = 0; i<recycleUsers.size();i++){
-                    if(recycleUsers.get(i).getUserID().equals(snapshot.getKey())){
-                        recycleUsers.get(i).setNotify(notify);
-                        break;
-                    }
-                }
-                recyclerView.getAdapter().notifyDataSetChanged();
-            }
 
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
 
     }
+
+    ChildEventListener notifyListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+            int notify = Integer.parseInt(snapshot.child("messages").getValue().toString());
+            for(int i = 0; i<recycleUsers.size();i++){
+                if(recycleUsers.get(i).getUserID().equals(snapshot.getKey())){
+                    recycleUsers.get(i).setNotify(notify);
+                    break;
+                }
+            }
+            recyclerView.getAdapter().notifyDataSetChanged();
+        }
+
+
+
+        @Override
+        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+            int notify = Integer.parseInt(snapshot.child("messages").getValue().toString());
+            for(int i = 0; i<recycleUsers.size();i++){
+                if(recycleUsers.get(i).getUserID().equals(snapshot.getKey())){
+                    recycleUsers.get(i).setNotify(notify);
+                    break;
+                }
+            }
+            recyclerView.getAdapter().notifyDataSetChanged();
+        }
+
+        @Override
+        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError error) {
+
+        }
+    };
 
     @Override
     protected void onPostResume() {
         editor = sharedPreferences.edit();
         editor.putString("openedChatId","");
         editor.commit();
-        
+
         super.onPostResume();
     }
 

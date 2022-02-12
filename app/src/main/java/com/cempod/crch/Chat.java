@@ -22,6 +22,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONException;
@@ -128,8 +129,8 @@ ArrayList<Message> messages = new ArrayList<>();
 
 
 
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-        mDatabase.child("rooms").child(getRoom()).child("messages").addChildEventListener(childEventListener);
+        Query mDatabase = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom()).child("messages").limitToLast(100);
+        mDatabase.addChildEventListener(childEventListener);
     }
 
     ChildEventListener outChildListener = new ChildEventListener() {
