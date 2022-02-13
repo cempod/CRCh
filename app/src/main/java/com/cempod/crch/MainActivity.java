@@ -48,11 +48,13 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.RemoteMessage;
 
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +67,7 @@ ArrayList<User> users = new ArrayList<>();
     ArrayList<RecyclerUser> recycleUsers = new ArrayList<>();
     SharedPreferences.Editor editor;
     SharedPreferences sharedPreferences;
-    boolean firebaseSaved = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,7 +119,7 @@ ArrayList<User> users = new ArrayList<>();
         if (user != null) {
           //  if (isServiceRunning(NotificationService.class)){}else{
 //startService(new Intent(this,NotificationService.class));}
-
+            setOnline();
             setToken();
             getUsers();
         } else {
@@ -146,12 +148,19 @@ ArrayList<User> users = new ArrayList<>();
         @Override
         public void onReceive(Context context, Intent intent) {
             // Get extra data included in the Intent
+            setOnline();
             setToken();
            getUsers();
 
         }
     };
 
+    public void setOnline(){
+        DatabaseReference presenceRef = FirebaseDatabase.getInstance().getReference("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("online");
+// Write a string when this client loses connection
+        presenceRef.onDisconnect().setValue(ServerValue.TIMESTAMP);
+        presenceRef.setValue("true");
+    }
     public void setToken(){
         DatabaseReference databaseReference;
         databaseReference = FirebaseDatabase.getInstance().getReference();

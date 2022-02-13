@@ -16,6 +16,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -29,15 +30,19 @@ import com.google.firebase.database.ValueEventListener;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 public class Chat extends AppCompatActivity {
-    ImageButton sendButton;
+    FloatingActionButton sendButton;
     int count;
     TextInputEditText messageTextEdit;
     RecyclerView messageRecycler;
@@ -49,6 +54,7 @@ ArrayList<Message> messages = new ArrayList<>();
     SharedPreferences.Editor editor;
     NotificationManager notificationManager;
     MaterialToolbar chatAppBar;
+    SimpleDateFormat onlineDateFormat = new SimpleDateFormat("HH:mm dd.MM.yy");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,8 +142,8 @@ ArrayList<Message> messages = new ArrayList<>();
 
         Query mDatabase = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom()).child("messages").limitToLast(100);
         mDatabase.addChildEventListener(childEventListener);
-        DatabaseReference onlineReference = FirebaseDatabase.getInstance().getReference().child("users").child(userID);
-        onlineReference.addChildEventListener(onlineListener);
+        DatabaseReference onlineReference = FirebaseDatabase.getInstance().getReference();
+        onlineReference.child("users").child(userID).child("online").addValueEventListener(onlineValueListener);
     }
 
     ChildEventListener outChildListener = new ChildEventListener() {
@@ -233,50 +239,28 @@ ArrayList<Message> messages = new ArrayList<>();
         }
     };
 
+ValueEventListener onlineValueListener = new ValueEventListener() {
+    @Override
+    public void onDataChange(@NonNull DataSnapshot snapshot) {
+       if(snapshot.getValue()!=null) {
+           if (snapshot.getValue().toString().equals("true")) {
+               chatAppBar.setSubtitle("Онлайн");
+           } else {
+               Long millis = Long.parseLong(snapshot.getValue().toString());
+Date date = new Date(millis);
 
-
-    ChildEventListener onlineListener = new ChildEventListener() {
-        @Override
-        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-if(snapshot.child("online").getValue()!= null) {
-    if (snapshot.child("online").getValue().toString().equals("true")) {
-        chatAppBar.setSubtitle("Онлайн");
-    } else {
-        chatAppBar.setSubtitle("Был(а) в сети " + snapshot.child("online").getValue().toString());
+               chatAppBar.setSubtitle("Был(а) в сети "+onlineDateFormat.format(date) );
+           }
+       }else chatAppBar.setSubtitle("");
     }
-}else{
-    chatAppBar.setSubtitle("");
-}
-        }
 
-        @Override
-        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            if(snapshot.child("online").getValue()!= null) {
-                if (snapshot.child("online").getValue().toString().equals("true")) {
-                    chatAppBar.setSubtitle("Онлайн");
-                } else {
-                    chatAppBar.setSubtitle("Был(а) в сети " + snapshot.child("online").getValue().toString());
-                }
-            }else{
-                chatAppBar.setSubtitle("");
-            }
-        }
+    @Override
+    public void onCancelled(@NonNull DatabaseError error) {
+        chatAppBar.setSubtitle("");
+    }
+};
 
-        @Override
-        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
 
-        }
-
-        @Override
-        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-        }
-
-        @Override
-        public void onCancelled(@NonNull DatabaseError error) {
-chatAppBar.setSubtitle("");
-        }
-    };
 
     public String getRoom() {
         String s1 = userID;
