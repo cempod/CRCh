@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -47,6 +48,7 @@ ArrayList<Message> messages = new ArrayList<>();
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
     NotificationManager notificationManager;
+    MaterialToolbar chatAppBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +56,7 @@ ArrayList<Message> messages = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
         setContentView(R.layout.activity_chat);
         Intent intent = getIntent();
+        chatAppBar = findViewById(R.id.chatAppBar);
         notificationManager =
                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
        sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
@@ -64,6 +67,8 @@ ArrayList<Message> messages = new ArrayList<>();
         editor.putString("openedChatId",userID);
         editor.commit();
        // getSupportActionBar().setTitle(name);
+        chatAppBar.setTitle(name);
+       // chatAppBar.setSubtitle("Онлайн");
         int notificationId = sharedPreferences.getInt(userID,-1);
         if(notificationId != -1){
             notificationManager.cancel(notificationId);
