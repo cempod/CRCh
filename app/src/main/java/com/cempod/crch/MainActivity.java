@@ -65,7 +65,6 @@ ArrayList<User> users = new ArrayList<>();
     ArrayList<RecyclerUser> recycleUsers = new ArrayList<>();
     SharedPreferences.Editor editor;
     SharedPreferences sharedPreferences;
-    boolean firebaseSaved = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,9 +86,7 @@ ArrayList<User> users = new ArrayList<>();
             editor.putString("openedChatId","");
             editor.commit();
         }
-        try {
-            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-        } catch (Exception e) {}
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -117,7 +114,6 @@ ArrayList<User> users = new ArrayList<>();
         if (user != null) {
           //  if (isServiceRunning(NotificationService.class)){}else{
 //startService(new Intent(this,NotificationService.class));}
-
             setToken();
             getUsers();
         } else {
