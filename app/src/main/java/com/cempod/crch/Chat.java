@@ -25,6 +25,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONException;
@@ -66,7 +67,7 @@ ArrayList<Message> messages = new ArrayList<>();
         notificationManager =
                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
        sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
-
+setOnline();
 
 
         String name = intent.getStringExtra("Name");
@@ -281,6 +282,13 @@ return s1+s2;
 
     }
 
+    public void setOnline(){
+        DatabaseReference presenceRef = FirebaseDatabase.getInstance().getReference("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("online");
+// Write a string when this client loses connection
+        presenceRef.onDisconnect().setValue(ServerValue.TIMESTAMP);
+        presenceRef.setValue("true");
+    }
+
     @Override
     protected void onPause() {
         editor.putString("openedChatId","");
@@ -302,6 +310,7 @@ return s1+s2;
     protected void onPostResume() {
         editor.putString("openedChatId",userID);
         editor.commit();
+        setOnline();
         int notificationId = sharedPreferences.getInt(userID,-1);
         if(notificationId != -1){
             notificationManager.cancel(notificationId);
