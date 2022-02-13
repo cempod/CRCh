@@ -34,7 +34,8 @@
         android:id="@+id/messageTextEdit"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="hint"
+        android:capitalize="sentences"
+        android:hint="Сообщение"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/sendButton"
         app:layout_constraintStart_toStartOf="parent" />

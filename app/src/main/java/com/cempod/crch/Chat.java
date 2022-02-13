@@ -116,7 +116,7 @@ ArrayList<Message> messages = new ArrayList<>();
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Message message = new Message(messageTextEdit.getText().toString(), dateFormat.format(new Date()).toString(),FirebaseAuth.getInstance().getCurrentUser().getUid());
+                Message message = new Message(messageTextEdit.getText().toString().trim(), dateFormat.format(new Date()).toString(),FirebaseAuth.getInstance().getCurrentUser().getUid());
                 DatabaseReference mDatabase;
 // ...
                 count = count+1;
@@ -136,6 +136,8 @@ ArrayList<Message> messages = new ArrayList<>();
 
         Query mDatabase = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom()).child("messages").limitToLast(100);
         mDatabase.addChildEventListener(childEventListener);
+        DatabaseReference onlineReference = FirebaseDatabase.getInstance().getReference().child("users").child(userID);
+        onlineReference.addChildEventListener(onlineListener);
     }
 
     ChildEventListener outChildListener = new ChildEventListener() {
@@ -228,6 +230,51 @@ ArrayList<Message> messages = new ArrayList<>();
         @Override
         public void onCancelled(@NonNull DatabaseError error) {
 
+        }
+    };
+
+
+
+    ChildEventListener onlineListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+if(snapshot.child("online").getValue()!= null) {
+    if (snapshot.child("online").getValue().toString().equals("true")) {
+        chatAppBar.setSubtitle("Онлайн");
+    } else {
+        chatAppBar.setSubtitle("Был(а) в сети " + snapshot.child("online").getValue().toString());
+    }
+}else{
+    chatAppBar.setSubtitle("");
+}
+        }
+
+        @Override
+        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+            if(snapshot.child("online").getValue()!= null) {
+                if (snapshot.child("online").getValue().toString().equals("true")) {
+                    chatAppBar.setSubtitle("Онлайн");
+                } else {
+                    chatAppBar.setSubtitle("Был(а) в сети " + snapshot.child("online").getValue().toString());
+                }
+            }else{
+                chatAppBar.setSubtitle("");
+            }
+        }
+
+        @Override
+        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+        }
+
+        @Override
+        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError error) {
+chatAppBar.setSubtitle("");
         }
     };
 
