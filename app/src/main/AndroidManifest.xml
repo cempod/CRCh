@@ -10,7 +10,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.CRCh">
+        android:theme="@style/AppTheme">
         <service
             android:name=".NotificationService"
             android:enabled="true"

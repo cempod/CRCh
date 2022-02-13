@@ -63,7 +63,7 @@ ArrayList<Message> messages = new ArrayList<>();
         editor = sharedPreferences.edit();
         editor.putString("openedChatId",userID);
         editor.commit();
-        getSupportActionBar().setTitle(name);
+       // getSupportActionBar().setTitle(name);
         int notificationId = sharedPreferences.getInt(userID,-1);
         if(notificationId != -1){
             notificationManager.cancel(notificationId);
