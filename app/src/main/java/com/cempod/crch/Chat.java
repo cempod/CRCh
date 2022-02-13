@@ -67,6 +67,8 @@ ArrayList<Message> messages = new ArrayList<>();
                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
        sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
 
+
+
         String name = intent.getStringExtra("Name");
         userID = intent.getStringExtra("Id");
         editor = sharedPreferences.edit();
@@ -79,6 +81,7 @@ ArrayList<Message> messages = new ArrayList<>();
         if(notificationId != -1){
             notificationManager.cancel(notificationId);
         }
+        setChat();
         messageRecycler = findViewById(R.id.messageRecycler);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         adapter = new ChatAdapter(messages,FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -144,6 +147,10 @@ ArrayList<Message> messages = new ArrayList<>();
         mDatabase.addChildEventListener(childEventListener);
         DatabaseReference onlineReference = FirebaseDatabase.getInstance().getReference();
         onlineReference.child("users").child(userID).child("online").addValueEventListener(onlineValueListener);
+    }
+
+    private void setChat() {
+    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("chats/"+FirebaseAuth.getInstance().getCurrentUser().getUid());
     }
 
     ChildEventListener outChildListener = new ChildEventListener() {

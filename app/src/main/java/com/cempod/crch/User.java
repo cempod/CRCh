@@ -9,6 +9,7 @@ this.userID = userID;
 this.userName = userName;
 this.userLogo = userLogo;
     }
+
     public User(){}
 
     public int getUserLogo() {

@@ -31,6 +31,7 @@ import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.common.api.Response;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -67,7 +68,7 @@ ArrayList<User> users = new ArrayList<>();
     ArrayList<RecyclerUser> recycleUsers = new ArrayList<>();
     SharedPreferences.Editor editor;
     SharedPreferences sharedPreferences;
-
+FloatingActionButton searchUserButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,7 +80,15 @@ ArrayList<User> users = new ArrayList<>();
         recyclerView.setLayoutManager(linearLayoutManager);
         UsersAdapter adapter = new UsersAdapter(recycleUsers);
         recyclerView.setAdapter(adapter);
-
+searchUserButton = findViewById(R.id.searchUserButton);
+searchUserButton.setVisibility(View.GONE);
+searchUserButton.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View view) {
+        Intent intent = new Intent(MainActivity.this,FindUserActivity.class);
+        startActivity(intent);
+    }
+});
 
         sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
         int lastNotificationId = sharedPreferences.getInt("lastNotificationId",-1);
@@ -119,6 +128,7 @@ ArrayList<User> users = new ArrayList<>();
         if (user != null) {
           //  if (isServiceRunning(NotificationService.class)){}else{
 //startService(new Intent(this,NotificationService.class));}
+            searchUserButton.setVisibility(View.VISIBLE);
             setOnline();
             setToken();
             getUsers();
@@ -147,7 +157,7 @@ ArrayList<User> users = new ArrayList<>();
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            // Get extra data included in the Intent
+            searchUserButton.setVisibility(View.VISIBLE);
             setOnline();
             setToken();
            getUsers();
