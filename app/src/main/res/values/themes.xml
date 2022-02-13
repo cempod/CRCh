@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <style name="AppTheme" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/md_theme_light_primary</item>
         <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
@@ -27,5 +27,5 @@
         <item name="colorSurfaceInverse">@color/md_theme_light_inverseSurface</item>
 <item name="colorPrimaryDark">@color/md_theme_light_surface</item>
         <item name="colorPrimaryInverse">@color/md_theme_light_primaryInverse</item>
-
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
     </style></resources>
