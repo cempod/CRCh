@@ -5,29 +5,17 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <ImageView
-        android:id="@+id/userLogoRecycler"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/messenger_bubble_small_blue" />
-
     <TextView
         android:id="@+id/usernameText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="8dp"
         android:text="USERNAME"
         android:textSize="20sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@+id/userLogoRecycler"
-        app:layout_constraintStart_toEndOf="@+id/userLogoRecycler"
-        app:layout_constraintTop_toTopOf="@+id/userLogoRecycler" />
+        app:layout_constraintBottom_toBottomOf="@+id/userOnlineCircle"
+        app:layout_constraintStart_toEndOf="@+id/userOnlineCircle"
+        app:layout_constraintTop_toTopOf="@+id/userOnlineCircle" />
 
     <ImageView
         android:id="@+id/iconOfMessages"
@@ -54,10 +42,39 @@
         android:id="@+id/divider3"
         android:layout_width="0dp"
         android:layout_height="1dp"
-        android:layout_marginStart="64dp"
+        android:layout_marginStart="76dp"
         android:background="?android:attr/listDivider"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+
+    <ImageView
+        android:id="@+id/userAvatar"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="8dp"
+        android:background="@drawable/user_circle_background"
+        app:layout_constraintBottom_toBottomOf="@+id/userOnlineCircle"
+        app:layout_constraintEnd_toEndOf="@+id/userOnlineCircle"
+        app:layout_constraintStart_toStartOf="@+id/userOnlineCircle"
+        app:layout_constraintTop_toTopOf="@+id/userOnlineCircle"
+        app:srcCompat="@drawable/ic_launcher_foreground" />
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/userOnlineCircle"
+        style="@style/Widget.Material3.CircularProgressIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:progress="0"
+        app:indicatorColor="?attr/colorPrimaryInverse"
+        app:indicatorSize="50dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:trackThickness="2dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

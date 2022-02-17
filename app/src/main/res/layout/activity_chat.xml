@@ -42,13 +42,19 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:titleCentered="true"
-            app:subtitleCentered="true"/>
+            app:subtitleCentered="true">
+
+        </com.google.android.material.appbar.MaterialToolbar>
+
+
 
         <View
             android:id="@+id/divider2"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="?android:attr/listDivider" />
+
+
 
     </com.google.android.material.appbar.AppBarLayout>
 

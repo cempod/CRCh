@@ -6,6 +6,7 @@ import androidx.constraintlayout.motion.widget.MotionLayout;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -107,7 +108,10 @@ mAuth.signInWithEmailAndPassword(emailText.getText().toString(),passwordText.get
                                            // Toast.makeText(getApplicationContext(), "Успешно",
                                                    // Toast.LENGTH_SHORT).show();
 
-                                            User user = new User(FirebaseAuth.getInstance().getCurrentUser().getUid().toString(),nicknameText.getText().toString(),0);
+                                            int intColor= ((int)(Math.random()*16777215)) | (0xFF << 24);
+                                            String hexColor = String.format("#%06X", (0xFFFFFF & intColor));
+
+                                            User user = new User(FirebaseAuth.getInstance().getCurrentUser().getUid().toString(),nicknameText.getText().toString(),0, hexColor);
                                             DatabaseReference mDatabase;
 // ...
                                             mDatabase = FirebaseDatabase.getInstance().getReference();

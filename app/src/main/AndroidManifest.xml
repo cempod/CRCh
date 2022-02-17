@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".UserEditor"
+            android:exported="true" />
+        <activity
             android:name=".FindUserActivity"
             android:exported="true" />
 

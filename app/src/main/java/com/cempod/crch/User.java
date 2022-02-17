@@ -2,15 +2,30 @@ package com.cempod.crch;
 
 public class User {
     private String userID;
+
+
+    private  String userColor = "#FFFFFF";
     private String userName;
     private int userLogo;
-    public User(String userID, String userName, int userLogo){
+    public User(String userID, String userName, int userLogo, String userColor){
 this.userID = userID;
 this.userName = userName;
 this.userLogo = userLogo;
+this.userColor = userColor;
     }
 
+
     public User(){}
+
+
+
+    public String getUserColor() {
+        return userColor;
+    }
+
+    public void setUserColor(String userColor) {
+        this.userColor = userColor;
+    }
 
     public int getUserLogo() {
         return userLogo;

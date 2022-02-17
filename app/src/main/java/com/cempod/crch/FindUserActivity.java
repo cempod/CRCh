@@ -59,7 +59,8 @@ RecyclerView.Adapter adapter = new UsersAdapter(list);
                         @Override
                         public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                             User user = snapshot.getValue(User.class);
-                            list.add(new RecyclerUser(user.getUserID(),user.getUserName(),user.getUserLogo(),0));
+
+                            list.add(new RecyclerUser(user.getUserID(),user.getUserName(),user.getUserLogo(),user.getUserColor(),0));
                             findRecycler.getAdapter().notifyDataSetChanged();
                             Toast toast = Toast.makeText(getApplicationContext(), user.getUserID(), Toast.LENGTH_SHORT);
                            // toast.show();

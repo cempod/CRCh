@@ -99,7 +99,7 @@ searchUserButton.setOnClickListener(new View.OnClickListener() {
             editor.commit();
         }
         try {
-            FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+           FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         } catch (Exception e) {}
 
         NotificationManager notificationManager =
@@ -207,31 +207,57 @@ databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
 
                 String id = snapshot.getKey();
-                cDatabase.child(id).addListenerForSingleValueEvent(new ValueEventListener() {
+                cDatabase.child(id).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         User user = snapshot.getValue(User.class);
-users.add(user);
-                        RecyclerUser recyclerUser = new RecyclerUser(user.getUserID(),user.getUserName(),user.getUserLogo(),0);
 
-                        nDatabase.child(id).child("messages").addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                int notify = Integer.parseInt(snapshot.getValue().toString());
-                                recyclerUser.setNotify(notify);
-                                recycleUsers.add(recyclerUser);
+boolean trigger = false;
+                        for(RecyclerUser recyclerUser:recycleUsers) {
+                            if (recyclerUser.getUserID().equals(user.getUserID())) {
+                                recyclerUser.setUserColor(user.getUserColor());
+                                recyclerUser.setUserLogo(user.getUserLogo());
+                                recyclerUser.setUserName(user.getUserName());
+                                if(snapshot.child("online").getValue() != null) {
+                                    recyclerUser.setOnline(snapshot.child("online").getValue().toString());
+                                }
                                 recyclerView.getAdapter().notifyDataSetChanged();
+                                trigger = true;
+                                break;
+                            }
+                        }
+                            if(!trigger){
+                                RecyclerUser recyclerUser = new RecyclerUser(user.getUserID(),user.getUserName(),user.getUserLogo(),user.getUserColor(),0);
+if(snapshot.child("online").getValue() != null) {
+    recyclerUser.setOnline(snapshot.child("online").getValue().toString());
+}
+                                nDatabase.child(id).child("messages").addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                       if(snapshot.exists()){
+                                           int notify = Integer.parseInt(snapshot.getValue().toString());
+                                           recyclerUser.setNotify(notify);
+                                       }
+                                        recycleUsers.add(recyclerUser);
+                                        recyclerView.getAdapter().notifyDataSetChanged();
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+                                        recycleUsers.add(recyclerUser);
+                                        recyclerView.getAdapter().notifyDataSetChanged();
+                                    }
+                                });
                             }
 
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-                                recycleUsers.add(recyclerUser);
-                                recyclerView.getAdapter().notifyDataSetChanged();
-                            }
-                        });
+
+
+
 
 
                     }
+
+
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
@@ -244,16 +270,8 @@ users.add(user);
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-               /* User user = snapshot.getValue(User.class);
-                for(int i = 0; i<users.size();i++){
-                    if(users.get(i).getUserID().equals(user.getUserID())){
-                        users.get(i).setUserName(user.getUserName());
-                        users.get(i).setUserLogo(user.getUserLogo());
-                        break;
-                    }
-                }
-                recyclerView.getAdapter().notifyDataSetChanged();
-*/
+
+
             }
 
             @Override

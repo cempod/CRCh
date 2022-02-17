@@ -152,6 +152,7 @@ setOnline();
 
     private void setChat() {
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("chats/"+FirebaseAuth.getInstance().getCurrentUser().getUid());
+    databaseReference.child(userID).child("id").setValue(userID);
     }
 
     ChildEventListener outChildListener = new ChildEventListener() {
