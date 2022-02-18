@@ -82,8 +82,10 @@ mAuth.signInWithEmailAndPassword(emailText.getText().toString(),passwordText.get
             Intent intent = new Intent("login-complete");
             // You can also include some extra data.
             //intent.putExtra("message", "This is my message!");
+            Intent startIntent = new Intent(getApplicationContext(),MainActivity.class);
+            startActivity(startIntent);
             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
-            onBackPressed();
+finish();
         } else {
             // If sign in fails, display a message to the user.
 
@@ -119,8 +121,10 @@ mAuth.signInWithEmailAndPassword(emailText.getText().toString(),passwordText.get
                                             Intent intent = new Intent("login-complete");
                                             // You can also include some extra data.
                                             //intent.putExtra("message", "This is my message!");
+                                            Intent startIntent = new Intent(getApplicationContext(),MainActivity.class);
+                                            startActivity(startIntent);
                                             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
-                                            onBackPressed();
+                                           finish();
                                         } else {
                                             // If sign in fails, display a message to the user.
 
@@ -143,5 +147,10 @@ mAuth.signInWithEmailAndPassword(emailText.getText().toString(),passwordText.get
                 }
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+       finishAffinity();
     }
 }

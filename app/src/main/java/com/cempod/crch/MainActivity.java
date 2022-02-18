@@ -20,11 +20,18 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.telecom.Call;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
@@ -69,12 +76,13 @@ ArrayList<User> users = new ArrayList<>();
     SharedPreferences.Editor editor;
     SharedPreferences sharedPreferences;
 FloatingActionButton searchUserButton;
+ImageButton mainMenuButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        mainMenuButton = findViewById(R.id.mainMenuButton);
         recyclerView = findViewById(R.id.recyclerView);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(linearLayoutManager);
@@ -87,6 +95,32 @@ searchUserButton.setOnClickListener(new View.OnClickListener() {
     public void onClick(View view) {
         Intent intent = new Intent(MainActivity.this,FindUserActivity.class);
         startActivity(intent);
+    }
+});
+
+mainMenuButton.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View view) {
+        PopupMenu popupMenu = new PopupMenu(getApplicationContext(),view);
+        popupMenu.inflate(R.menu.main_menu);
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                                                 @Override
+                                                 public boolean onMenuItemClick(MenuItem menuItem) {
+                                                     switch (menuItem.getItemId()) {
+                                                         case R.id.menu_edit:
+                                                             Intent intent = new Intent(MainActivity.this,UserEditor.class);
+                                                             startActivity(intent);
+                                                             return true;
+                                                         case R.id.menu_exit:
+                                                            logout();
+                                                             return true;
+
+                                                         default:
+                                                             return false;
+                                                     }
+                                                 }
+                                             });
+        popupMenu.show();
     }
 });
 
@@ -132,15 +166,25 @@ searchUserButton.setOnClickListener(new View.OnClickListener() {
             setOnline();
             setToken();
             getUsers();
+            getAccount();
         } else {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
+            finish();
         }
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
                 new IntentFilter("login-complete"));
 
 
+    }
+
+    private void logout() {
+        FirebaseAuth.getInstance().signOut();
+
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private boolean isServiceRunning(Class<?> serviceClass) {
@@ -161,7 +205,7 @@ searchUserButton.setOnClickListener(new View.OnClickListener() {
             setOnline();
             setToken();
            getUsers();
-
+getAccount();
         }
     };
 
@@ -191,6 +235,42 @@ databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser
                     }
                 });
 
+    }
+
+    public void getAccount(){
+        UserIconsManager iconsManager = new UserIconsManager();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
+        databaseReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                User user = snapshot.getValue(User.class);
+                mainMenuButton.setImageResource(iconsManager.getIconIds()[user.getUserLogo()]);
+                Drawable drawable = mainMenuButton.getBackground();
+                if(drawable instanceof ShapeDrawable){
+                    ShapeDrawable shapeDrawable = (ShapeDrawable) drawable;
+                    shapeDrawable.getPaint().setColor(Color.parseColor(user.getUserColor()));
+                   mainMenuButton.setBackground(drawable);
+
+                }else if (drawable instanceof ColorDrawable) {
+                    // alpha value may need to be set again after this call
+                    ColorDrawable colorDrawable = (ColorDrawable) drawable;
+                    colorDrawable.setColor(Color.parseColor(user.getUserColor()));
+                    mainMenuButton.setBackground(drawable);
+
+                }else if (drawable instanceof GradientDrawable) {
+                    // alpha value may need to be set again after this call
+                    GradientDrawable gradientDrawable = (GradientDrawable) drawable;
+                    gradientDrawable.setColor(Color.parseColor(user.getUserColor()));
+                    mainMenuButton.setBackground(drawable);
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
     }
 
     public void getUsers(){
