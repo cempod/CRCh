@@ -23,6 +23,7 @@ import java.util.List;
 
 public class UsersAdapter extends RecyclerView.Adapter {
     private List<RecyclerUser> users;
+    UserIconsManager iconsManager = new UserIconsManager();
     public UsersAdapter(List<RecyclerUser> users){
         this.users = users;
     }
@@ -72,6 +73,12 @@ public class UsersAdapter extends RecyclerView.Adapter {
             GradientDrawable gradientDrawable = (GradientDrawable) drawable;
             gradientDrawable.setColor(Color.parseColor(users.get(position).getUserColor()));
             ((UserHolder)holder).userAvatar.setBackground(gradientDrawable);
+        }
+
+        if(users.get(position).getUserLogo()>=0){
+            ((UserHolder)holder).userAvatar.setImageResource(iconsManager.getIconIds()[users.get(position).getUserLogo()]);
+        }else{
+            ((UserHolder)holder).userAvatar.setImageResource(iconsManager.getIconIds()[0]);
         }
 
         if(users.get(position).getNotify()!=0){

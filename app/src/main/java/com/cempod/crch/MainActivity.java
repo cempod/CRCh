@@ -345,7 +345,9 @@ if(snapshot.child("online").getValue() != null) {
         editor = sharedPreferences.edit();
         editor.putString("openedChatId","");
         editor.commit();
-
+if(FirebaseAuth.getInstance().getCurrentUser() != null){
+    setOnline();
+}
         super.onPostResume();
     }
 
