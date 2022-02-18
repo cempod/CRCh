@@ -39,6 +39,7 @@ import com.google.android.gms.common.api.Response;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -77,12 +78,14 @@ ArrayList<User> users = new ArrayList<>();
     SharedPreferences sharedPreferences;
 FloatingActionButton searchUserButton;
 ImageButton mainMenuButton;
+CircularProgressIndicator connectionIndicator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mainMenuButton = findViewById(R.id.mainMenuButton);
+        connectionIndicator = findViewById(R.id.connectionIndicator);
         recyclerView = findViewById(R.id.recyclerView);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(linearLayoutManager);
@@ -271,6 +274,25 @@ databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser
 
             }
         });
+
+        DatabaseReference connectedRef = FirebaseDatabase.getInstance().getReference(".info/connected");
+        connectedRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                boolean connected = snapshot.getValue(Boolean.class);
+                if (connected) {
+                    connectionIndicator.setIndeterminate(false);
+                } else {
+                    connectionIndicator.setIndeterminate(true);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+               
+            }
+        });
+
     }
 
     public void getUsers(){

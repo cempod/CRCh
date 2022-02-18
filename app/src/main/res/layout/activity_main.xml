@@ -45,6 +45,20 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/ic_launcher_foreground" />
 
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/connectionIndicator"
+                style="@style/Widget.Material3.CircularProgressIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:indicatorColor="?attr/colorPrimaryInverse"
+                android:progress="100"
+                app:indicatorSize="50dp"
+                app:trackThickness="2dp"
+                app:layout_constraintBottom_toBottomOf="@+id/mainMenuButton"
+                app:layout_constraintEnd_toEndOf="@+id/mainMenuButton"
+                app:layout_constraintStart_toStartOf="@+id/mainMenuButton"
+                app:layout_constraintTop_toTopOf="@+id/mainMenuButton" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <View
