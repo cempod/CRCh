@@ -3,6 +3,7 @@ package com.cempod.crch;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.motion.widget.MotionLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -10,14 +11,19 @@ import android.app.NotificationManager;
 import android.content.Intent;
 
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -41,10 +47,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.concurrent.TimeUnit;
 
 public class Chat extends AppCompatActivity {
     FloatingActionButton sendButton;
     int count;
+    MotionLayout chatLayout;
+    TextView typingText;
     TextInputEditText messageTextEdit;
     RecyclerView messageRecycler;
 ArrayList<Message> messages = new ArrayList<>();
@@ -64,10 +73,13 @@ ArrayList<Message> messages = new ArrayList<>();
         setContentView(R.layout.activity_chat);
         Intent intent = getIntent();
         chatAppBar = findViewById(R.id.chatAppBar);
+        chatLayout = findViewById(R.id.chatLayout);
+        typingText = findViewById(R.id.typingText);
         notificationManager =
                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
        sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
 setOnline();
+
 
 
         String name = intent.getStringExtra("Name");
@@ -75,6 +87,7 @@ setOnline();
         editor = sharedPreferences.edit();
         editor.putString("openedChatId",userID);
         editor.commit();
+        typingText.setText(name+" набирает сообщение");
        // getSupportActionBar().setTitle(name);
         chatAppBar.setTitle(name);
        // chatAppBar.setSubtitle("Онлайн");
@@ -121,6 +134,61 @@ setOnline();
         databaseReference.addListenerForSingleValueEvent(eventListener);
 
 
+        messageTextEdit.addTextChangedListener(new TextWatcher() {
+            DatabaseReference databaseReference =FirebaseDatabase.getInstance().getReference("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+            boolean isTyping = false;
+            class TypeTimer extends AsyncTask<Void, Void, Void> {
+
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    isTyping = true;
+                }
+
+                @Override
+                protected Void doInBackground(Void... params) {
+                    try {
+                        TimeUnit.SECONDS.sleep(5);
+
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void result) {
+                    super.onPostExecute(result);
+                    databaseReference.child("typing").setValue("false");
+
+                    isTyping = false;
+                }
+            }
+
+            TypeTimer typeTimer;
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+              if(!isTyping){
+                databaseReference.child("typing").setValue(ServerValue.TIMESTAMP);
+typeTimer = new TypeTimer();
+typeTimer.execute();
+
+              }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (!isTyping) {
+                    databaseReference.child("typing").setValue("false");
+                }
+            }
+        });
 
 
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -133,7 +201,7 @@ setOnline();
                 mDatabase = FirebaseDatabase.getInstance().getReference();
                 mDatabase.child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("messages").setValue(count);
                 mDatabase.child("rooms").child(getRoom()).child("messages").push().setValue(message);
-
+                mDatabase.child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("typing").setValue("false");
            messageTextEdit.setText("");
             }
 
@@ -148,6 +216,8 @@ setOnline();
         mDatabase.addChildEventListener(childEventListener);
         DatabaseReference onlineReference = FirebaseDatabase.getInstance().getReference();
         onlineReference.child("users").child(userID).child("online").addValueEventListener(onlineValueListener);
+        DatabaseReference typingReference = FirebaseDatabase.getInstance().getReference();
+        typingReference.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID).child("typing").addValueEventListener(typingValueListener);
     }
 
     private void setChat() {
@@ -158,14 +228,18 @@ setOnline();
     ChildEventListener outChildListener = new ChildEventListener() {
         @Override
         public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            count = Integer.parseInt(snapshot.getValue().toString());
-            //   Toast.makeText(getApplicationContext(), "added"+count,
-            //           Toast.LENGTH_SHORT).show();
+            if(snapshot.getKey().toString().equals("messages")) {
+                count = Integer.parseInt(snapshot.getValue().toString());
+            }
+              // Toast.makeText(getApplicationContext(), "added"+snapshot.getValue().toString()+snapshot.getKey().toString(),
+               //        Toast.LENGTH_SHORT).show();
         }
 
         @Override
         public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            count = Integer.parseInt(snapshot.getValue().toString());
+            if(snapshot.getKey().toString().equals("messages")) {
+                count = Integer.parseInt(snapshot.getValue().toString());
+            }
             //  Toast.makeText(getApplicationContext(), "changed"+count,
             //          Toast.LENGTH_SHORT).show();
         }
@@ -269,6 +343,23 @@ Date date = new Date(millis);
     }
 };
 
+ValueEventListener typingValueListener = new ValueEventListener() {
+    @Override
+    public void onDataChange(@NonNull DataSnapshot snapshot) {
+        if(snapshot.exists()){
+            if(snapshot.getValue().toString().equals("false")){
+                chatLayout.transitionToStart();
+            }else{
+                chatLayout.transitionToEnd();
+            }
+        }
+    }
+
+    @Override
+    public void onCancelled(@NonNull DatabaseError error) {
+
+    }
+};
 
 
     public String getRoom() {

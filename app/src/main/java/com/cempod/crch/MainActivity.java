@@ -289,7 +289,7 @@ databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-               
+
             }
         });
 
