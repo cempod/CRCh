@@ -35,8 +35,8 @@
 
             <ImageButton
                 android:id="@+id/mainMenuButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_marginEnd="16dp"
                 android:background="@drawable/user_circle_background"
                 android:scaleType="fitXY"
@@ -50,14 +50,14 @@
                 style="@style/Widget.Material3.CircularProgressIndicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:indicatorColor="?attr/colorPrimaryInverse"
                 android:progress="100"
-                app:indicatorSize="50dp"
-                app:trackThickness="2dp"
+                app:indicatorColor="?attr/colorPrimaryInverse"
+                app:indicatorSize="42dp"
                 app:layout_constraintBottom_toBottomOf="@+id/mainMenuButton"
                 app:layout_constraintEnd_toEndOf="@+id/mainMenuButton"
                 app:layout_constraintStart_toStartOf="@+id/mainMenuButton"
-                app:layout_constraintTop_toTopOf="@+id/mainMenuButton" />
+                app:layout_constraintTop_toTopOf="@+id/mainMenuButton"
+                app:trackThickness="2dp" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

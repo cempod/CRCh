@@ -11,17 +11,25 @@ import android.app.NotificationManager;
 import android.content.Intent;
 
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -63,18 +71,31 @@ ArrayList<Message> messages = new ArrayList<>();
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
     NotificationManager notificationManager;
-    MaterialToolbar chatAppBar;
+    TextView chatUsernameText, chatOnlineText;
     SimpleDateFormat onlineDateFormat = new SimpleDateFormat("HH:mm dd.MM.yy");
+    User user;
+    ImageView avatar;
+    CircularProgressIndicator connectionChatIndicator;
+    UserIconsManager iconsManager = new UserIconsManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
-        setContentView(R.layout.activity_chat);
+
         Intent intent = getIntent();
-        chatAppBar = findViewById(R.id.chatAppBar);
+
+        setContentView(R.layout.activity_chat);
+        avatar = findViewById(R.id.userChatAvatar);
+        Bitmap bitmap = (Bitmap)(intent.getParcelableExtra("avatar"));
+avatar.setImageBitmap(bitmap);
+        chatUsernameText = findViewById(R.id.chatUsernameText);
+        chatOnlineText = findViewById(R.id.chatOnlineText);
         chatLayout = findViewById(R.id.chatLayout);
         typingText = findViewById(R.id.typingText);
+
+        connectionChatIndicator = findViewById(R.id.connectionChatIndicator);
+
         notificationManager =
                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
        sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
@@ -84,12 +105,13 @@ setOnline();
 
         String name = intent.getStringExtra("Name");
         userID = intent.getStringExtra("Id");
+
         editor = sharedPreferences.edit();
         editor.putString("openedChatId",userID);
         editor.commit();
         typingText.setText(name+" набирает сообщение");
        // getSupportActionBar().setTitle(name);
-        chatAppBar.setTitle(name);
+        chatUsernameText.setText(name);
        // chatAppBar.setSubtitle("Онлайн");
         int notificationId = sharedPreferences.getInt(userID,-1);
         if(notificationId != -1){
@@ -215,7 +237,7 @@ typeTimer.execute();
         Query mDatabase = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom()).child("messages").limitToLast(100);
         mDatabase.addChildEventListener(childEventListener);
         DatabaseReference onlineReference = FirebaseDatabase.getInstance().getReference();
-        onlineReference.child("users").child(userID).child("online").addValueEventListener(onlineValueListener);
+        onlineReference.child("users").child(userID).addValueEventListener(userListener);
         DatabaseReference typingReference = FirebaseDatabase.getInstance().getReference();
         typingReference.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID).child("typing").addValueEventListener(typingValueListener);
     }
@@ -293,6 +315,7 @@ typeTimer.execute();
     };
 
     ChildEventListener childEventListener = new ChildEventListener() {
+
         @Override
         public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
             Message message = snapshot.getValue(Message.class);
@@ -322,24 +345,40 @@ typeTimer.execute();
         }
     };
 
+   ValueEventListener userListener = new ValueEventListener() {
+       @Override
+       public void onDataChange(@NonNull DataSnapshot snapshot) {
+           if(snapshot.exists()){
+               user = snapshot.getValue(User.class);
+               chatUsernameText.setText(user.getUserName());
+
+           }
+       }
+
+       @Override
+       public void onCancelled(@NonNull DatabaseError error) {
+
+       }
+   };
+
 ValueEventListener onlineValueListener = new ValueEventListener() {
     @Override
     public void onDataChange(@NonNull DataSnapshot snapshot) {
        if(snapshot.getValue()!=null) {
            if (snapshot.getValue().toString().equals("true")) {
-               chatAppBar.setSubtitle("Онлайн");
+               chatOnlineText.setText("Онлайн");
            } else {
                Long millis = Long.parseLong(snapshot.getValue().toString());
 Date date = new Date(millis);
 
-               chatAppBar.setSubtitle("Был(а) в сети "+onlineDateFormat.format(date) );
+               chatOnlineText.setText("Был(а) в сети "+onlineDateFormat.format(date) );
            }
-       }else chatAppBar.setSubtitle("");
+       }else chatOnlineText.setText("");
     }
 
     @Override
     public void onCancelled(@NonNull DatabaseError error) {
-        chatAppBar.setSubtitle("");
+        chatOnlineText.setText("");
     }
 };
 

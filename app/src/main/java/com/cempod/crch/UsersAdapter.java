@@ -1,13 +1,17 @@
 package com.cempod.crch;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.ShapeDrawable;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.google.firebase.crashlytics.buildtools.reloc.org.apache.commons.cli.Options;
 
 import java.util.List;
 
@@ -93,11 +98,15 @@ public class UsersAdapter extends RecyclerView.Adapter {
         ((UserHolder)holder).itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                ((UserHolder)holder).userAvatar.buildDrawingCache();
                 Intent intent = new Intent(context,Chat.class);
+                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation((Activity) context,((UserHolder)holder).userAvatar,"avatar");
                 intent.putExtra("Id", users.get(position).getUserID());
                 intent.putExtra("Name",users.get(position).getUserName());
-                context.startActivity(intent);
+
+                Bitmap bitmap = ((UserHolder)holder).userAvatar.getDrawingCache();
+                intent.putExtra("avatar",bitmap);
+                context.startActivity(intent, options.toBundle());
             }
         });
     }

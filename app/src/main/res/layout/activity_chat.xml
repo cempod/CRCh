@@ -39,15 +39,67 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/chatAppBar"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/mainAppBar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:subtitleCentered="true"
-            app:titleCentered="true">
+            android:layout_height="?attr/actionBarSize">
 
-        </com.google.android.material.appbar.MaterialToolbar>
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/connectionChatIndicator"
+                style="@style/Widget.Material3.CircularProgressIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:progress="100"
+                app:indicatorColor="?attr/colorPrimaryInverse"
+                app:indicatorSize="38dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:trackThickness="2dp" />
 
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="@+id/connectionChatIndicator"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/connectionChatIndicator">
+
+                <TextView
+                    android:id="@+id/chatUsernameText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="USERNAME"
+                    android:textSize="20sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/chatOnlineText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="@+id/chatUsernameText"
+                    app:layout_constraintHorizontal_bias="0.49"
+                    app:layout_constraintStart_toStartOf="@+id/chatUsernameText"
+                    app:layout_constraintTop_toBottomOf="@+id/chatUsernameText" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <ImageView
+                android:id="@+id/userChatAvatar"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:background="@drawable/appbar_transparent"
+                android:transitionName="avatar"
+                app:layout_constraintBottom_toBottomOf="@+id/connectionChatIndicator"
+                app:layout_constraintEnd_toEndOf="@+id/connectionChatIndicator"
+                app:layout_constraintStart_toStartOf="@+id/connectionChatIndicator"
+                app:layout_constraintTop_toTopOf="@+id/connectionChatIndicator"
+                app:srcCompat="@drawable/appbar_transparent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <View
             android:id="@+id/divider2"
@@ -71,6 +123,7 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/messageRecycler"
+
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@+id/cardView"
