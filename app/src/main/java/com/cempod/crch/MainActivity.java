@@ -6,6 +6,7 @@ import static com.google.firebase.messaging.RemoteMessage.Builder.*;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -83,6 +84,18 @@ CircularProgressIndicator connectionIndicator;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferences sPreferences = getSharedPreferences("settings",MODE_PRIVATE);
+
+        String nightMode = sPreferences.getString("night_mode","auto");
+        if(nightMode.equals("true")){
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        }
+        if(nightMode.equals("false")){
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
+        if(nightMode.equals("auto")){
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        }
         setContentView(R.layout.activity_main);
         mainMenuButton = findViewById(R.id.mainMenuButton);
         connectionIndicator = findViewById(R.id.connectionIndicator);
