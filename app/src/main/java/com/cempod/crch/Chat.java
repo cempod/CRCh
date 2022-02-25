@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.motion.widget.MotionLayout;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -21,7 +23,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.transition.Transition;
+import android.transition.TransitionManager;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -77,6 +82,7 @@ ArrayList<Message> messages = new ArrayList<>();
     ImageView avatar;
     CircularProgressIndicator connectionChatIndicator;
     UserIconsManager iconsManager = new UserIconsManager();
+    ConstraintLayout chatAppBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,163 +90,205 @@ ArrayList<Message> messages = new ArrayList<>();
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
 
         Intent intent = getIntent();
-
-        setContentView(R.layout.activity_chat);
-        avatar = findViewById(R.id.userChatAvatar);
-        Bitmap bitmap = (Bitmap)(intent.getParcelableExtra("avatar"));
-avatar.setImageBitmap(bitmap);
-        chatUsernameText = findViewById(R.id.chatUsernameText);
-        chatOnlineText = findViewById(R.id.chatOnlineText);
-        chatLayout = findViewById(R.id.chatLayout);
-        typingText = findViewById(R.id.typingText);
-
-        connectionChatIndicator = findViewById(R.id.connectionChatIndicator);
-
-        notificationManager =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-       sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
-setOnline();
-
-
-
-        String name = intent.getStringExtra("Name");
-        userID = intent.getStringExtra("Id");
-
+        sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
         editor = sharedPreferences.edit();
         editor.putString("openedChatId",userID);
         editor.commit();
-        typingText.setText(name+" набирает сообщение");
-       // getSupportActionBar().setTitle(name);
-        chatUsernameText.setText(name);
-       // chatAppBar.setSubtitle("Онлайн");
-        int notificationId = sharedPreferences.getInt(userID,-1);
-        if(notificationId != -1){
-            notificationManager.cancel(notificationId);
-        }
-        setChat();
+        String name = intent.getStringExtra("Name");
+        userID = intent.getStringExtra("Id");
+        setContentView(R.layout.activity_chat);
+        chatUsernameText = findViewById(R.id.chatUsernameText);
         messageRecycler = findViewById(R.id.messageRecycler);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
-        adapter = new ChatAdapter(messages,FirebaseAuth.getInstance().getCurrentUser().getUid());
-        messageRecycler.setLayoutManager(linearLayoutManager);
-        messageRecycler.setAdapter(adapter);
-        linearLayoutManager.setStackFromEnd(true);
-        sendButton = findViewById(R.id.sendButton);
-        messageTextEdit = findViewById(R.id.messageTextEdit);
-        count = 0;
-        DatabaseReference outReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        outReference.addChildEventListener(outChildListener);
 
-        DatabaseReference inReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID);
+        chatLayout = findViewById(R.id.chatLayout);
+        chatUsernameText.setText(name);
+        getWindow().getSharedElementEnterTransition().addListener(new Transition.TransitionListener() {
 
-        inReference.addChildEventListener(inputChildListener);
-
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom());
-        ValueEventListener eventListener = new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if(!snapshot.exists()){
-                    DatabaseReference mDatabase;
-// ...
-                    mDatabase = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom()).child("users");
-                    mDatabase.child(FirebaseAuth.getInstance().getCurrentUser().getUid().toString()).setValue(FirebaseAuth.getInstance().getCurrentUser().getUid().toString());
+            public void onTransitionStart(Transition transition) {
 
-                    mDatabase.child(userID).setValue(name);
-                }
+                avatar = findViewById(R.id.userChatAvatar);
+                Bitmap bitmap = (Bitmap) (intent.getParcelableExtra("avatar"));
+                avatar.setImageBitmap(bitmap);
+
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+            public void onTransitionEnd(Transition transition) {
 
-            }
-        };
-        databaseReference.addListenerForSingleValueEvent(eventListener);
+                if(messages.size()==0){
 
 
-        messageTextEdit.addTextChangedListener(new TextWatcher() {
-            DatabaseReference databaseReference =FirebaseDatabase.getInstance().getReference("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-            boolean isTyping = false;
-            class TypeTimer extends AsyncTask<Void, Void, Void> {
+                    chatOnlineText = findViewById(R.id.chatOnlineText);
 
-                @Override
-                protected void onPreExecute() {
-                    super.onPreExecute();
-                    isTyping = true;
-                }
+                    typingText = findViewById(R.id.typingText);
+                    connectionChatIndicator = findViewById(R.id.connectionChatIndicator);
+                    chatAppBar = findViewById(R.id.chatAppBar);
+                    notificationManager =
+                            (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-                @Override
-                protected Void doInBackground(Void... params) {
-                    try {
-                        TimeUnit.SECONDS.sleep(5);
+                    setOnline();
 
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+
+
+
+
+
+                    typingText.setText(name+" набирает сообщение");
+                    // getSupportActionBar().setTitle(name);
+
+                    // chatAppBar.setSubtitle("Онлайн");
+                    int notificationId = sharedPreferences.getInt(userID,-1);
+                    if(notificationId != -1){
+                        notificationManager.cancel(notificationId);
                     }
-                    return null;
-                }
+                    setChat();
 
-                @Override
-                protected void onPostExecute(Void result) {
-                    super.onPostExecute(result);
-                    databaseReference.child("typing").setValue("false");
+                    LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
+                    adapter = new ChatAdapter(messages,FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    messageRecycler.setLayoutManager(linearLayoutManager);
+                    messageRecycler.setAdapter(adapter);
+                    linearLayoutManager.setStackFromEnd(true);
+                    sendButton = findViewById(R.id.sendButton);
+                    messageTextEdit = findViewById(R.id.messageTextEdit);
+                    count = 0;
+                    DatabaseReference outReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    outReference.addChildEventListener(outChildListener);
 
-                    isTyping = false;
-                }
-            }
+                    DatabaseReference inReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID);
 
-            TypeTimer typeTimer;
+                    inReference.addChildEventListener(inputChildListener);
 
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-              if(!isTyping){
-                databaseReference.child("typing").setValue(ServerValue.TIMESTAMP);
-typeTimer = new TypeTimer();
-typeTimer.execute();
-
-              }
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                if (!isTyping) {
-                    databaseReference.child("typing").setValue("false");
-                }
-            }
-        });
-
-
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Message message = new Message(messageTextEdit.getText().toString().trim(), dateFormat.format(new Date()).toString(),FirebaseAuth.getInstance().getCurrentUser().getUid());
-                DatabaseReference mDatabase;
+                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom());
+                    ValueEventListener eventListener = new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if(!snapshot.exists()){
+                                DatabaseReference mDatabase;
 // ...
-                count = count+1;
-                mDatabase = FirebaseDatabase.getInstance().getReference();
-                mDatabase.child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("messages").setValue(count);
-                mDatabase.child("rooms").child(getRoom()).child("messages").push().setValue(message);
-                mDatabase.child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("typing").setValue("false");
-           messageTextEdit.setText("");
+                                mDatabase = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom()).child("users");
+                                mDatabase.child(FirebaseAuth.getInstance().getCurrentUser().getUid().toString()).setValue(FirebaseAuth.getInstance().getCurrentUser().getUid().toString());
+
+                                mDatabase.child(userID).setValue(name);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    };
+                    databaseReference.addListenerForSingleValueEvent(eventListener);
+
+
+                    messageTextEdit.addTextChangedListener(new TextWatcher() {
+                        DatabaseReference databaseReference =FirebaseDatabase.getInstance().getReference("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                        boolean isTyping = false;
+                        class TypeTimer extends AsyncTask<Void, Void, Void> {
+
+                            @Override
+                            protected void onPreExecute() {
+                                super.onPreExecute();
+                                isTyping = true;
+                            }
+
+                            @Override
+                            protected Void doInBackground(Void... params) {
+                                try {
+                                    TimeUnit.SECONDS.sleep(5);
+
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                return null;
+                            }
+
+                            @Override
+                            protected void onPostExecute(Void result) {
+                                super.onPostExecute(result);
+                                databaseReference.child("typing").setValue("false");
+
+                                isTyping = false;
+                            }
+                        }
+
+                        TypeTimer typeTimer;
+
+                        @Override
+                        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                        }
+
+                        @Override
+                        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                            if(!isTyping){
+                                databaseReference.child("typing").setValue(ServerValue.TIMESTAMP);
+                                typeTimer = new TypeTimer();
+                                typeTimer.execute();
+
+                            }
+                        }
+
+                        @Override
+                        public void afterTextChanged(Editable editable) {
+                            if (!isTyping) {
+                                databaseReference.child("typing").setValue("false");
+                            }
+                        }
+                    });
+
+
+                    sendButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Message message = new Message(messageTextEdit.getText().toString().trim(), dateFormat.format(new Date()).toString(),FirebaseAuth.getInstance().getCurrentUser().getUid());
+                            DatabaseReference mDatabase;
+// ...
+                            count = count+1;
+                            mDatabase = FirebaseDatabase.getInstance().getReference();
+                            mDatabase.child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("messages").setValue(count);
+                            mDatabase.child("rooms").child(getRoom()).child("messages").push().setValue(message);
+                            mDatabase.child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("typing").setValue("false");
+                            messageTextEdit.setText("");
+                        }
+
+                    });
+
+
+
+
+
+
+                     Query mDatabase = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom()).child("messages").limitToLast(100);
+                     mDatabase.addChildEventListener(childEventListener);
+                    DatabaseReference onlineReference = FirebaseDatabase.getInstance().getReference();
+                    onlineReference.child("users").child(userID).addValueEventListener(userListener);
+                    DatabaseReference typingReference = FirebaseDatabase.getInstance().getReference();
+                    typingReference.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID).child("typing").addValueEventListener(typingValueListener);
+
+
+                }else {messageRecycler.setVisibility(View.INVISIBLE);}
+
+
             }
 
+            @Override
+            public void onTransitionCancel(Transition transition) {
+
+            }
+
+            @Override
+            public void onTransitionPause(Transition transition) {
+
+            }
+
+            @Override
+            public void onTransitionResume(Transition transition) {
+
+            }
         });
 
-
-
-
-
-
-        Query mDatabase = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom()).child("messages").limitToLast(100);
-        mDatabase.addChildEventListener(childEventListener);
-        DatabaseReference onlineReference = FirebaseDatabase.getInstance().getReference();
-        onlineReference.child("users").child(userID).addValueEventListener(userListener);
-        DatabaseReference typingReference = FirebaseDatabase.getInstance().getReference();
-        typingReference.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID).child("typing").addValueEventListener(typingValueListener);
-    }
+  }
 
     private void setChat() {
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("chats/"+FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -348,10 +396,27 @@ typeTimer.execute();
    ValueEventListener userListener = new ValueEventListener() {
        @Override
        public void onDataChange(@NonNull DataSnapshot snapshot) {
-           if(snapshot.exists()){
+           if(snapshot.getValue()!=null){
+
                user = snapshot.getValue(User.class);
                chatUsernameText.setText(user.getUserName());
-
+               if(snapshot.child("online").getValue()!=null){
+               if (snapshot.child("online").getValue().toString().equals("true")) {
+                   chatOnlineText.setText("Онлайн");
+                   chatOnlineText.setVisibility(View.VISIBLE);
+                   connectionChatIndicator.setProgress(100);
+               } else {
+                   Long millis = Long.parseLong(snapshot.child("online").getValue().toString());
+                   Date date = new Date(millis);
+                   connectionChatIndicator.setProgress(0);
+                   chatOnlineText.setText("Был(а) в сети "+onlineDateFormat.format(date) );
+                   chatOnlineText.setVisibility(View.VISIBLE);
+               }
+           }else{
+                   connectionChatIndicator.setProgress(0);
+                   chatOnlineText.setText("");
+                   chatOnlineText.setVisibility(View.GONE);
+               }
            }
        }
 
@@ -444,7 +509,12 @@ return s1+s2;
         setOnline();
         int notificationId = sharedPreferences.getInt(userID,-1);
         if(notificationId != -1){
-            notificationManager.cancel(notificationId);
+
+            try{
+                notificationManager.cancel(notificationId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         super.onPostResume();
     }

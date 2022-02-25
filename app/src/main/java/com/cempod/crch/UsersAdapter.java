@@ -19,6 +19,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityOptionsCompat;
+import androidx.core.util.Pair;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.progressindicator.CircularProgressIndicator;
@@ -100,7 +102,11 @@ public class UsersAdapter extends RecyclerView.Adapter {
             public void onClick(View view) {
                 ((UserHolder)holder).userAvatar.buildDrawingCache();
                 Intent intent = new Intent(context,Chat.class);
-                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation((Activity) context,((UserHolder)holder).userAvatar,"avatar");
+                ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation((Activity) context,
+                        new Pair<>(((UserHolder)holder).userAvatar,"avatar"),
+                        new Pair<>(((UserHolder)holder).username,"username")
+
+                );
                 intent.putExtra("Id", users.get(position).getUserID());
                 intent.putExtra("Name",users.get(position).getUserName());
 
