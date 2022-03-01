@@ -119,6 +119,7 @@ ArrayList<Message> messages = new ArrayList<>();
                 if(messages.size()==0){
 
 
+
                     chatOnlineText = findViewById(R.id.chatOnlineText);
 
                     typingText = findViewById(R.id.typingText);
