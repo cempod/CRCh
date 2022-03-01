@@ -114,6 +114,7 @@ public class UsersAdapter extends RecyclerView.Adapter {
                 intent.putExtra("Id", users.get(position).getUserID());
                 intent.putExtra("Name",users.get(position).getUserName());
                 intent.putExtra("Position",users.get(position).getUserID());
+                intent.putExtra("from","main");
 
                 Bitmap bitmap = ((UserHolder)holder).userAvatar.getDrawingCache();
                 intent.putExtra("avatar",bitmap);
