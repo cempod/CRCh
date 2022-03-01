@@ -415,13 +415,18 @@ if(snapshot.child("online").getValue() != null) {
     ChildEventListener notifyListener = new ChildEventListener() {
         @Override
         public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            int notify = Integer.parseInt(snapshot.child("messages").getValue().toString());
-            for(int i = 0; i<recycleUsers.size();i++){
-                if(recycleUsers.get(i).getUserID().equals(snapshot.getKey())){
-                    recycleUsers.get(i).setNotify(notify);
-                    break;
-                }
-            }
+try {
+    int notify = Integer.parseInt(snapshot.child("messages").getValue().toString());
+    for(int i = 0; i<recycleUsers.size();i++){
+        if(recycleUsers.get(i).getUserID().equals(snapshot.getKey())){
+            recycleUsers.get(i).setNotify(notify);
+            break;
+        }
+    }
+} catch (Exception e) {
+    e.printStackTrace();
+}
+
             recyclerView.getAdapter().notifyDataSetChanged();
         }
 

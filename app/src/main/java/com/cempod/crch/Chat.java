@@ -3,6 +3,7 @@ package com.cempod.crch;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.constraintlayout.motion.widget.MotionLayout;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.view.ViewCompat;
@@ -99,6 +100,18 @@ ArrayList<Message> messages = new ArrayList<>();
         editor.putString("openedChatId",userID);
         editor.commit();
         postponeEnterTransition();
+        SharedPreferences sPreferences = getSharedPreferences("settings",MODE_PRIVATE);
+
+        String nightMode = sPreferences.getString("night_mode","auto");
+        if(nightMode.equals("true")){
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        }
+        if(nightMode.equals("false")){
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
+        if(nightMode.equals("auto")){
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        }
         setContentView(R.layout.activity_chat);
         findIDS();
         typingText.setText(name+" набирает сообщение");
