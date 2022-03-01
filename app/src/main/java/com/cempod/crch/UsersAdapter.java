@@ -60,6 +60,10 @@ public class UsersAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         ((UserHolder)holder).username.setText(users.get(position).getUserName());
+        ((UserHolder)holder).userAvatar.setTransitionName("avatar"+(users.get(position).getUserID()));
+        ((UserHolder)holder).userAvatar.setTag(position);
+        ((UserHolder)holder).username.setTag(position);
+        ((UserHolder)holder).username.setTransitionName("username"+users.get(position).getUserID());
         if(users.get(position).getOnline().equals("true")){
             ((UserHolder)holder).userOnlineCircle.setProgress(100);
         }else{
@@ -103,12 +107,13 @@ public class UsersAdapter extends RecyclerView.Adapter {
                 ((UserHolder)holder).userAvatar.buildDrawingCache();
                 Intent intent = new Intent(context,Chat.class);
                 ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation((Activity) context,
-                        new Pair<>(((UserHolder)holder).userAvatar,"avatar"),
-                        new Pair<>(((UserHolder)holder).username,"username")
+                        new Pair<>(((UserHolder)holder).userAvatar,"avatar"+users.get(position).getUserID()),
+                        new Pair<>(((UserHolder)holder).username,"username"+users.get(position).getUserID())
 
                 );
                 intent.putExtra("Id", users.get(position).getUserID());
                 intent.putExtra("Name",users.get(position).getUserName());
+                intent.putExtra("Position",users.get(position).getUserID());
 
                 Bitmap bitmap = ((UserHolder)holder).userAvatar.getDrawingCache();
                 intent.putExtra("avatar",bitmap);

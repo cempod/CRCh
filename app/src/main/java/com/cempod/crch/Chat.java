@@ -65,6 +65,7 @@ import java.util.concurrent.TimeUnit;
 public class Chat extends AppCompatActivity {
     FloatingActionButton sendButton;
     int count;
+    Intent intent;
     MotionLayout chatLayout;
     TextView typingText;
     TextInputEditText messageTextEdit;
@@ -77,406 +78,204 @@ ArrayList<Message> messages = new ArrayList<>();
     SharedPreferences.Editor editor;
     NotificationManager notificationManager;
     TextView chatUsernameText, chatOnlineText;
-    SimpleDateFormat onlineDateFormat = new SimpleDateFormat("HH:mm dd.MM.yy");
+    SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
     User user;
+    String name;
     ImageView avatar;
     CircularProgressIndicator connectionChatIndicator;
     UserIconsManager iconsManager = new UserIconsManager();
-    ConstraintLayout chatAppBar;
+    ChatMessagesManager messagesManager;
+    UserInfoManager infoManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
-
-        Intent intent = getIntent();
+        intent = getIntent();
         sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
+        name = intent.getStringExtra("Name");
+        userID = intent.getStringExtra("Id");
         editor = sharedPreferences.edit();
         editor.putString("openedChatId",userID);
         editor.commit();
-        String name = intent.getStringExtra("Name");
-        userID = intent.getStringExtra("Id");
+        postponeEnterTransition();
         setContentView(R.layout.activity_chat);
+        findIDS();
+        typingText.setText(name+" набирает сообщение");
+        chatUsernameText.setTransitionName("username"+intent.getStringExtra("Position"));
+        adapter = new ChatAdapter(messages,FirebaseAuth.getInstance().getCurrentUser().getUid());
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
+        linearLayoutManager.setStackFromEnd(true);
+        messageRecycler.setAdapter(adapter);
+        messageRecycler.setLayoutManager(linearLayoutManager);
+        chatUsernameText.setText(name);
+        avatar.setTransitionName("avatar"+intent.getStringExtra("Position"));
+        avatar.setTag(intent.getStringExtra("Position"));
+        getWindow().getSharedElementEnterTransition().addListener(openChatAnimation);
+        Bitmap bitmap = (Bitmap) (intent.getParcelableExtra("avatar"));
+        avatar.setImageBitmap(bitmap);
+        startPostponedEnterTransition();
+  }
+
+ Transition.TransitionListener openChatAnimation = new Transition.TransitionListener() {
+        @Override
+        public void onTransitionStart(Transition transition) {
+
+
+
+
+        }
+
+        @Override
+        public void onTransitionEnd(Transition transition) {
+            if(messages.size()==0){
+                setChat();
+                setOnline();
+                messagesManager = new ChatMessagesManager(messageRecycler,userID,messages);
+                messagesManager.startInputListening();
+                messagesManager.startInputListening();
+                infoManager = new UserInfoManager();
+                infoManager.setUserListener(userID,chatUsernameText,chatOnlineText,avatar,connectionChatIndicator);
+
+
+
+                sendButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                        Message message = new Message(messageTextEdit.getText().toString().trim(), dateFormat.format(new Date()).toString(),FirebaseAuth.getInstance().getCurrentUser().getUid());
+                        DatabaseReference mDatabase;
+// ...
+                        count = count+1;
+                        mDatabase = FirebaseDatabase.getInstance().getReference();
+                        mDatabase.child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("messages").setValue(count);
+                        mDatabase.child("rooms").child(messagesManager.getRoom()).child("messages").push().setValue(message);
+                        mDatabase.child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("typing").setValue("false");
+                        messageTextEdit.setText("");
+                    }
+
+                });
+                avatar.setTransitionName("avatar");
+                chatUsernameText.setTransitionName("username");
+
+                messageTextEdit.addTextChangedListener(new TextWatcher() {
+                    DatabaseReference databaseReference =FirebaseDatabase.getInstance().getReference("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    boolean isTyping = false;
+                    class TypeTimer extends AsyncTask<Void, Void, Void> {
+
+                        @Override
+                        protected void onPreExecute() {
+                            super.onPreExecute();
+                            isTyping = true;
+                        }
+
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            try {
+                                TimeUnit.SECONDS.sleep(5);
+
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            return null;
+                        }
+
+                        @Override
+                        protected void onPostExecute(Void result) {
+                            super.onPostExecute(result);
+                            databaseReference.child("typing").setValue("false");
+
+                            isTyping = false;
+                        }
+                    }
+
+                    TypeTimer typeTimer;
+
+                    @Override
+                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                        if(!isTyping){
+                            databaseReference.child("typing").setValue(ServerValue.TIMESTAMP);
+                            typeTimer = new TypeTimer();
+                            typeTimer.execute();
+
+                        }
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable editable) {
+                        if (!isTyping) {
+                            databaseReference.child("typing").setValue("false");
+                        }
+                    }
+                });
+
+                DatabaseReference typingReference = FirebaseDatabase.getInstance().getReference();
+                typingReference.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID).child("typing").addValueEventListener(typingValueListener);
+
+
+
+            }else {
+
+            }
+        }
+
+        @Override
+        public void onTransitionCancel(Transition transition) {
+
+        }
+
+        @Override
+        public void onTransitionPause(Transition transition) {
+
+        }
+
+        @Override
+        public void onTransitionResume(Transition transition) {
+
+        }
+    };
+
+    ValueEventListener typingValueListener = new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot snapshot) {
+            if(snapshot.exists()){
+                if(snapshot.getValue().toString().equals("false")){
+                    chatLayout.transitionToStart();
+                }else{
+                    chatLayout.transitionToEnd();
+                }
+            }
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError error) {
+
+        }
+    };
+
+
+    public void findIDS(){
+        typingText=findViewById(R.id.typingText);
         chatUsernameText = findViewById(R.id.chatUsernameText);
         messageRecycler = findViewById(R.id.messageRecycler);
-
         chatLayout = findViewById(R.id.chatLayout);
-        chatUsernameText.setText(name);
-        getWindow().getSharedElementEnterTransition().addListener(new Transition.TransitionListener() {
+        avatar = findViewById(R.id.userChatAvatar);
+        messageTextEdit = findViewById(R.id.messageTextEdit);
+        sendButton = findViewById(R.id.sendButton);
+        connectionChatIndicator = findViewById(R.id.connectionChatIndicator);
+        chatOnlineText = findViewById(R.id.chatOnlineText);
 
-            @Override
-            public void onTransitionStart(Transition transition) {
+    }
 
-                avatar = findViewById(R.id.userChatAvatar);
-                Bitmap bitmap = (Bitmap) (intent.getParcelableExtra("avatar"));
-                avatar.setImageBitmap(bitmap);
-
-            }
-
-            @Override
-            public void onTransitionEnd(Transition transition) {
-
-                if(messages.size()==0){
-
-
-
-                    chatOnlineText = findViewById(R.id.chatOnlineText);
-
-                    typingText = findViewById(R.id.typingText);
-                    connectionChatIndicator = findViewById(R.id.connectionChatIndicator);
-                    chatAppBar = findViewById(R.id.chatAppBar);
-                    notificationManager =
-                            (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-
-                    setOnline();
-
-
-
-
-
-
-                    typingText.setText(name+" набирает сообщение");
-                    // getSupportActionBar().setTitle(name);
-
-                    // chatAppBar.setSubtitle("Онлайн");
-                    int notificationId = sharedPreferences.getInt(userID,-1);
-                    if(notificationId != -1){
-                        notificationManager.cancel(notificationId);
-                    }
-                    setChat();
-
-                    LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
-                    adapter = new ChatAdapter(messages,FirebaseAuth.getInstance().getCurrentUser().getUid());
-                    messageRecycler.setLayoutManager(linearLayoutManager);
-                    messageRecycler.setAdapter(adapter);
-                    linearLayoutManager.setStackFromEnd(true);
-                    sendButton = findViewById(R.id.sendButton);
-                    messageTextEdit = findViewById(R.id.messageTextEdit);
-                    count = 0;
-                    DatabaseReference outReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-                    outReference.addChildEventListener(outChildListener);
-
-                    DatabaseReference inReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID);
-
-                    inReference.addChildEventListener(inputChildListener);
-
-                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom());
-                    ValueEventListener eventListener = new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if(!snapshot.exists()){
-                                DatabaseReference mDatabase;
-// ...
-                                mDatabase = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom()).child("users");
-                                mDatabase.child(FirebaseAuth.getInstance().getCurrentUser().getUid().toString()).setValue(FirebaseAuth.getInstance().getCurrentUser().getUid().toString());
-
-                                mDatabase.child(userID).setValue(name);
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-
-                        }
-                    };
-                    databaseReference.addListenerForSingleValueEvent(eventListener);
-
-
-                    messageTextEdit.addTextChangedListener(new TextWatcher() {
-                        DatabaseReference databaseReference =FirebaseDatabase.getInstance().getReference("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-                        boolean isTyping = false;
-                        class TypeTimer extends AsyncTask<Void, Void, Void> {
-
-                            @Override
-                            protected void onPreExecute() {
-                                super.onPreExecute();
-                                isTyping = true;
-                            }
-
-                            @Override
-                            protected Void doInBackground(Void... params) {
-                                try {
-                                    TimeUnit.SECONDS.sleep(5);
-
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                                return null;
-                            }
-
-                            @Override
-                            protected void onPostExecute(Void result) {
-                                super.onPostExecute(result);
-                                databaseReference.child("typing").setValue("false");
-
-                                isTyping = false;
-                            }
-                        }
-
-                        TypeTimer typeTimer;
-
-                        @Override
-                        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-                        }
-
-                        @Override
-                        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                            if(!isTyping){
-                                databaseReference.child("typing").setValue(ServerValue.TIMESTAMP);
-                                typeTimer = new TypeTimer();
-                                typeTimer.execute();
-
-                            }
-                        }
-
-                        @Override
-                        public void afterTextChanged(Editable editable) {
-                            if (!isTyping) {
-                                databaseReference.child("typing").setValue("false");
-                            }
-                        }
-                    });
-
-
-                    sendButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            Message message = new Message(messageTextEdit.getText().toString().trim(), dateFormat.format(new Date()).toString(),FirebaseAuth.getInstance().getCurrentUser().getUid());
-                            DatabaseReference mDatabase;
-// ...
-                            count = count+1;
-                            mDatabase = FirebaseDatabase.getInstance().getReference();
-                            mDatabase.child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("messages").setValue(count);
-                            mDatabase.child("rooms").child(getRoom()).child("messages").push().setValue(message);
-                            mDatabase.child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("typing").setValue("false");
-                            messageTextEdit.setText("");
-                        }
-
-                    });
-
-
-
-
-
-
-                     Query mDatabase = FirebaseDatabase.getInstance().getReference().child("rooms").child(getRoom()).child("messages").limitToLast(100);
-                     mDatabase.addChildEventListener(childEventListener);
-                    DatabaseReference onlineReference = FirebaseDatabase.getInstance().getReference();
-                    onlineReference.child("users").child(userID).addValueEventListener(userListener);
-                    DatabaseReference typingReference = FirebaseDatabase.getInstance().getReference();
-                    typingReference.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID).child("typing").addValueEventListener(typingValueListener);
-
-
-                }else {messageRecycler.setVisibility(View.INVISIBLE);}
-
-
-            }
-
-            @Override
-            public void onTransitionCancel(Transition transition) {
-
-            }
-
-            @Override
-            public void onTransitionPause(Transition transition) {
-
-            }
-
-            @Override
-            public void onTransitionResume(Transition transition) {
-
-            }
-        });
-
-  }
 
     private void setChat() {
     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("chats/"+FirebaseAuth.getInstance().getCurrentUser().getUid());
     databaseReference.child(userID).child("id").setValue(userID);
-    }
-
-    ChildEventListener outChildListener = new ChildEventListener() {
-        @Override
-        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            if(snapshot.getKey().toString().equals("messages")) {
-                count = Integer.parseInt(snapshot.getValue().toString());
-            }
-              // Toast.makeText(getApplicationContext(), "added"+snapshot.getValue().toString()+snapshot.getKey().toString(),
-               //        Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            if(snapshot.getKey().toString().equals("messages")) {
-                count = Integer.parseInt(snapshot.getValue().toString());
-            }
-            //  Toast.makeText(getApplicationContext(), "changed"+count,
-            //          Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-        }
-
-        @Override
-        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-        }
-
-        @Override
-        public void onCancelled(@NonNull DatabaseError error) {
-            Toast.makeText(getApplicationContext(), error.toString(),
-                    Toast.LENGTH_SHORT).show();
-        }
-    };
-
-    ChildEventListener inputChildListener = new ChildEventListener() {
-        @Override
-        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            DatabaseReference mDatabase;
-            mDatabase = FirebaseDatabase.getInstance().getReference();
-            mDatabase.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID).child("messages").setValue(0);
-        }
-
-        @Override
-        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            DatabaseReference mDatabase;
-            mDatabase = FirebaseDatabase.getInstance().getReference();
-            mDatabase.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID).child("messages").setValue(0);
-        }
-
-        @Override
-        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-        }
-
-        @Override
-        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-        }
-
-        @Override
-        public void onCancelled(@NonNull DatabaseError error) {
-
-        }
-    };
-
-    ChildEventListener childEventListener = new ChildEventListener() {
-
-        @Override
-        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-            Message message = snapshot.getValue(Message.class);
-            messages.add(message);
-            messageRecycler.getAdapter().notifyDataSetChanged();
-            messageRecycler.smoothScrollToPosition(adapter.getItemCount());
-        }
-
-        @Override
-        public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-        }
-
-        @Override
-        public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
-        }
-
-        @Override
-        public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-
-        }
-
-        @Override
-        public void onCancelled(@NonNull DatabaseError error) {
-
-        }
-    };
-
-   ValueEventListener userListener = new ValueEventListener() {
-       @Override
-       public void onDataChange(@NonNull DataSnapshot snapshot) {
-           if(snapshot.getValue()!=null){
-
-               user = snapshot.getValue(User.class);
-               chatUsernameText.setText(user.getUserName());
-               if(snapshot.child("online").getValue()!=null){
-               if (snapshot.child("online").getValue().toString().equals("true")) {
-                   chatOnlineText.setText("Онлайн");
-                   chatOnlineText.setVisibility(View.VISIBLE);
-                   connectionChatIndicator.setProgress(100);
-               } else {
-                   Long millis = Long.parseLong(snapshot.child("online").getValue().toString());
-                   Date date = new Date(millis);
-                   connectionChatIndicator.setProgress(0);
-                   chatOnlineText.setText("Был(а) в сети "+onlineDateFormat.format(date) );
-                   chatOnlineText.setVisibility(View.VISIBLE);
-               }
-           }else{
-                   connectionChatIndicator.setProgress(0);
-                   chatOnlineText.setText("");
-                   chatOnlineText.setVisibility(View.GONE);
-               }
-           }
-       }
-
-       @Override
-       public void onCancelled(@NonNull DatabaseError error) {
-
-       }
-   };
-
-ValueEventListener onlineValueListener = new ValueEventListener() {
-    @Override
-    public void onDataChange(@NonNull DataSnapshot snapshot) {
-       if(snapshot.getValue()!=null) {
-           if (snapshot.getValue().toString().equals("true")) {
-               chatOnlineText.setText("Онлайн");
-           } else {
-               Long millis = Long.parseLong(snapshot.getValue().toString());
-Date date = new Date(millis);
-
-               chatOnlineText.setText("Был(а) в сети "+onlineDateFormat.format(date) );
-           }
-       }else chatOnlineText.setText("");
-    }
-
-    @Override
-    public void onCancelled(@NonNull DatabaseError error) {
-        chatOnlineText.setText("");
-    }
-};
-
-ValueEventListener typingValueListener = new ValueEventListener() {
-    @Override
-    public void onDataChange(@NonNull DataSnapshot snapshot) {
-        if(snapshot.exists()){
-            if(snapshot.getValue().toString().equals("false")){
-                chatLayout.transitionToStart();
-            }else{
-                chatLayout.transitionToEnd();
-            }
-        }
-    }
-
-    @Override
-    public void onCancelled(@NonNull DatabaseError error) {
-
-    }
-};
-
-
-    public String getRoom() {
-        String s1 = userID;
-        String s2 = FirebaseAuth.getInstance().getCurrentUser().getUid();
-    int compare = s1.compareTo(s2);
-    if(compare<0){
-return s1+s2;
-    }else{
-       return s2+s1;
-    }
-
     }
 
     public void setOnline(){
@@ -486,20 +285,20 @@ return s1+s2;
         presenceRef.setValue("true");
     }
 
+
+
+
+
     @Override
     protected void onPause() {
         editor.putString("openedChatId","");
         editor.commit();
-       /* DatabaseReference inReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID);
-
-        inReference.removeEventListener(inputChildListener);
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-        mDatabase.child("rooms").child(getRoom()).child("messages").removeEventListener(childEventListener);
-        DatabaseReference outReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        outReference.removeEventListener(outChildListener);
-       Toast.makeText(getApplicationContext(), "paused",
-                       Toast.LENGTH_SHORT).show();*/
-
+        DatabaseReference databaseReference =FirebaseDatabase.getInstance().getReference("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        databaseReference.child("typing").setValue("false");
+        if(messagesManager!=null) {
+            messagesManager.stopInputListening();
+            messagesManager.stopInputListening();
+        }
         super.onPause();
     }
 
@@ -517,21 +316,19 @@ return s1+s2;
                 e.printStackTrace();
             }
         }
+        if(messagesManager!=null) {
+            messagesManager.startInputListening();
+            messagesManager.startInputListening();
+        }
         super.onPostResume();
     }
 
     @Override
     protected void onDestroy() {
-        DatabaseReference inReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child(userID);
         editor.putString("openedChatId","");
         editor.commit();
-        inReference.removeEventListener(inputChildListener);
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-        mDatabase.child("rooms").child(getRoom()).child("messages").removeEventListener(childEventListener);
-        DatabaseReference outReference = FirebaseDatabase.getInstance().getReference().child("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        outReference.removeEventListener(outChildListener);
-       // Toast.makeText(getApplicationContext(), "closed",
-       //                 Toast.LENGTH_SHORT).show();
+        DatabaseReference databaseReference =FirebaseDatabase.getInstance().getReference("notifications").child(userID).child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        databaseReference.child("typing").setValue("false");
         super.onDestroy();
     }
 }

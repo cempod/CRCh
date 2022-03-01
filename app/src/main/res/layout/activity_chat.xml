@@ -76,7 +76,7 @@
                     android:layout_height="wrap_content"
                     android:textAlignment="center"
                     android:textSize="20sp"
-                    android:transitionName="username"
+
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -99,7 +99,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:background="@drawable/appbar_transparent"
-                android:transitionName="avatar"
+
                 app:layout_constraintBottom_toBottomOf="@+id/connectionChatIndicator"
                 app:layout_constraintEnd_toEndOf="@+id/connectionChatIndicator"
                 app:layout_constraintStart_toStartOf="@+id/connectionChatIndicator"
