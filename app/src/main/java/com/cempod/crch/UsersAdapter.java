@@ -30,6 +30,7 @@ import java.util.List;
 
 public class UsersAdapter extends RecyclerView.Adapter {
     private List<RecyclerUser> users;
+    UserInfoManager infoManager = new UserInfoManager();
     UserIconsManager iconsManager = new UserIconsManager();
     public UsersAdapter(List<RecyclerUser> users){
         this.users = users;
@@ -59,6 +60,7 @@ public class UsersAdapter extends RecyclerView.Adapter {
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, @SuppressLint("RecyclerView") int position) {
+
         ((UserHolder)holder).username.setText(users.get(position).getUserName());
         ((UserHolder)holder).userAvatar.setTransitionName("avatar"+(users.get(position).getUserID()));
         ((UserHolder)holder).userAvatar.setTag(position);
@@ -69,27 +71,14 @@ public class UsersAdapter extends RecyclerView.Adapter {
         }else{
             ((UserHolder)holder).userOnlineCircle.setProgress(0);
         }
-        Drawable drawable = ((UserHolder)holder).userAvatar.getBackground();
-        if(drawable instanceof ShapeDrawable){
-            ShapeDrawable shapeDrawable = (ShapeDrawable) drawable;
-            shapeDrawable.getPaint().setColor(Color.parseColor(users.get(position).getUserColor()));
-            ((UserHolder)holder).userAvatar.setBackground(shapeDrawable);
-        }else if (drawable instanceof ColorDrawable) {
-            // alpha value may need to be set again after this call
-            ColorDrawable colorDrawable = (ColorDrawable) drawable;
-            colorDrawable.setColor(Color.parseColor(users.get(position).getUserColor()));
-            ((UserHolder)holder).userAvatar.setBackground(colorDrawable);
-        }else if (drawable instanceof GradientDrawable) {
-            // alpha value may need to be set again after this call
-            GradientDrawable gradientDrawable = (GradientDrawable) drawable;
-            gradientDrawable.setColor(Color.parseColor(users.get(position).getUserColor()));
-            ((UserHolder)holder).userAvatar.setBackground(gradientDrawable);
-        }
+
 
         if(users.get(position).getUserLogo()>=0){
-            ((UserHolder)holder).userAvatar.setImageResource(iconsManager.getIconIds()[users.get(position).getUserLogo()]);
+            infoManager.getAvatar(users.get(position).getUserLogo(),users.get(position).getUserColor(),((UserHolder)holder).userAvatar);
+           // ((UserHolder)holder).userAvatar.setImageResource(iconsManager.getIconIds()[users.get(position).getUserLogo()]);
         }else{
-            ((UserHolder)holder).userAvatar.setImageResource(iconsManager.getIconIds()[0]);
+           // ((UserHolder)holder).userAvatar.setImageResource(iconsManager.getIconIds()[0]);
+            infoManager.getAvatar(0,users.get(position).getUserColor(),((UserHolder)holder).userAvatar);
         }
 
         if(users.get(position).getNotify()!=0){
@@ -100,6 +89,8 @@ public class UsersAdapter extends RecyclerView.Adapter {
             ((UserHolder)holder).countOfMessage.setText("");
         }
 
+        infoManager.setNotificationListener(((UserHolder)holder).iconOfMessages,((UserHolder)holder).countOfMessage, users.get(position).getUserID());
+        infoManager.setUserListener(users.get(position).getUserID(),((UserHolder)holder).username,null,((UserHolder)holder).userAvatar,((UserHolder)holder).userOnlineCircle);
         Context context = holder.itemView.getContext();
         ((UserHolder)holder).itemView.setOnClickListener(new View.OnClickListener() {
             @Override

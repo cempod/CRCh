@@ -317,6 +317,50 @@ databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser
         mDatabase = FirebaseDatabase.getInstance().getReference("chats").child(FirebaseAuth.getInstance().getCurrentUser().getUid());
         cDatabase = FirebaseDatabase.getInstance().getReference("users");
         nDatabase = FirebaseDatabase.getInstance().getReference("notifications/"+FirebaseAuth.getInstance().getCurrentUser().getUid());
+
+        ChildEventListener chatsListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                String id = snapshot.getKey();
+                cDatabase.child(id).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        User user = snapshot.getValue(User.class);
+                        RecyclerUser recyclerUser = new RecyclerUser(user.getUserID(),user.getUserName(),user.getUserLogo(),user.getUserColor(),0);
+                        recycleUsers.add(recyclerUser);
+                        recyclerView.getAdapter().notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        };
+        mDatabase.addChildEventListener(chatsListener);
+
+
         ChildEventListener childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
@@ -404,13 +448,15 @@ if(snapshot.child("online").getValue() != null) {
 
             }
         };
-        mDatabase.addChildEventListener(childEventListener);
+       // mDatabase.addChildEventListener(childEventListener);
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        databaseReference.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addChildEventListener(notifyListener);
+       // databaseReference.child("notifications").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addChildEventListener(notifyListener);
 
 
 
     }
+
+
 
     ChildEventListener notifyListener = new ChildEventListener() {
         @Override

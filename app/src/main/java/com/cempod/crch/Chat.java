@@ -77,7 +77,7 @@ ArrayList<Message> messages = new ArrayList<>();
     ChatAdapter adapter;
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
-    NotificationManager notificationManager;
+    NotificationManager notificationManager ;
     TextView chatUsernameText, chatOnlineText;
     SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
     User user;
@@ -93,6 +93,9 @@ ArrayList<Message> messages = new ArrayList<>();
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         intent = getIntent();
+        name = intent.getStringExtra("Name");
+        userID = intent.getStringExtra("Id");
+        notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         sharedPreferences = getSharedPreferences("notifications",MODE_PRIVATE);
         int notificationId = sharedPreferences.getInt(userID,-1);
         if(notificationId != -1){
@@ -103,8 +106,7 @@ ArrayList<Message> messages = new ArrayList<>();
                 e.printStackTrace();
             }
         }
-        name = intent.getStringExtra("Name");
-        userID = intent.getStringExtra("Id");
+
         editor = sharedPreferences.edit();
         editor.putString("openedChatId",userID);
         editor.commit();
@@ -133,13 +135,14 @@ ArrayList<Message> messages = new ArrayList<>();
         chatUsernameText.setText(name);
         avatar.setTransitionName("avatar"+intent.getStringExtra("Position"));
         avatar.setTag(intent.getStringExtra("Position"));
+        Bitmap bitmap = (Bitmap) (intent.getParcelableExtra("avatar"));
+        avatar.setImageBitmap(bitmap);
         if(intent.getStringExtra("from")!=null){
         getWindow().getSharedElementEnterTransition().addListener(openChatAnimation);
         }else{
             mainFunction();
         }
-        Bitmap bitmap = (Bitmap) (intent.getParcelableExtra("avatar"));
-        avatar.setImageBitmap(bitmap);
+
         startPostponedEnterTransition();
   }
 
