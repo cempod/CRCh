@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,21 +21,30 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LevelListDrawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.telecom.Call;
+import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ImageSpan;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.load.resource.gif.GifDrawable;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.common.api.Response;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -80,6 +90,7 @@ ArrayList<User> users = new ArrayList<>();
 FloatingActionButton searchUserButton;
 ImageButton mainMenuButton;
 CircularProgressIndicator connectionIndicator;
+TextView mainActivityTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +108,10 @@ CircularProgressIndicator connectionIndicator;
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         }
         setContentView(R.layout.activity_main);
+        mainActivityTitle = findViewById(R.id.mainActivityTitle);
+
+
+
         mainMenuButton = findViewById(R.id.mainMenuButton);
         connectionIndicator = findViewById(R.id.connectionIndicator);
         recyclerView = findViewById(R.id.recyclerView);
@@ -117,6 +132,7 @@ searchUserButton.setOnClickListener(new View.OnClickListener() {
 mainMenuButton.setOnClickListener(new View.OnClickListener() {
     @Override
     public void onClick(View view) {
+
         PopupMenu popupMenu = new PopupMenu(getApplicationContext(),view);
         popupMenu.inflate(R.menu.main_menu);
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {

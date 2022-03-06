@@ -23,7 +23,11 @@ import android.graphics.drawable.ShapeDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.TextWatcher;
+import android.text.style.DynamicDrawableSpan;
+import android.text.style.ImageSpan;
 import android.transition.Transition;
 import android.transition.TransitionManager;
 import android.view.View;
@@ -133,6 +137,7 @@ ArrayList<Message> messages = new ArrayList<>();
         messageRecycler.setAdapter(adapter);
         messageRecycler.setLayoutManager(linearLayoutManager);
         chatUsernameText.setText(name);
+
         avatar.setTransitionName("avatar"+intent.getStringExtra("Position"));
         avatar.setTag(intent.getStringExtra("Position"));
         Bitmap bitmap = (Bitmap) (intent.getParcelableExtra("avatar"));
@@ -158,7 +163,10 @@ ArrayList<Message> messages = new ArrayList<>();
         @Override
         public void onTransitionEnd(Transition transition) {
             if(messages.size()==0){
-          mainFunction();
+                mainFunction();
+
+
+
             }else {
 
             }
