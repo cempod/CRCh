@@ -87,7 +87,7 @@ mAuth.signInWithEmailAndPassword(emailText.getText().toString(),passwordText.get
             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
 finish();
         } else {
-            // If sign in fails, display a message to the user.
+           
 
             Toast.makeText(getApplicationContext(), "Произошла ошибка",
                     Toast.LENGTH_SHORT).show();
@@ -126,7 +126,7 @@ finish();
                                             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
                                            finish();
                                         } else {
-                                            // If sign in fails, display a message to the user.
+                                           
 
                                             Toast.makeText(getApplicationContext(), "Произошла ошибка",
                                                     Toast.LENGTH_SHORT).show();
