@@ -14,7 +14,7 @@
 [Ссылка на серверную чать](https://github.com/cempod/CRCh-Servers)
 
 ![Иллюстрация к проекту](https://github.com/cempod/CRCh/blob/new_notification/CRCH1.jpg)
-![Иллюстрация к проекту](https://github.com/cempod/CRCh2/blob/new_notification/CRCH2.jpg)
-![Иллюстрация к проекту](https://github.com/cempod/CRCh2/blob/new_notification/CRCH3.jpg)
-![Иллюстрация к проекту](https://github.com/cempod/CRCh2/blob/new_notification/CRCH4.jpg)
-![Иллюстрация к проекту](https://github.com/cempod/CRCh2/blob/new_notification/CRCH5.jpg)
+![Иллюстрация к проекту](https://github.com/cempod/CRCh/blob/new_notification/CRCH2.jpg)
+![Иллюстрация к проекту](https://github.com/cempod/CRCh/blob/new_notification/CRCH3.jpg)
+![Иллюстрация к проекту](https://github.com/cempod/CRCh/blob/new_notification/CRCH4.jpg)
+![Иллюстрация к проекту](https://github.com/cempod/CRCh/blob/new_notification/CRCH5.jpg)
