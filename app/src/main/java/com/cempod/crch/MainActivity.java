@@ -243,7 +243,7 @@ getAccount();
 
     public void setOnline(){
         DatabaseReference presenceRef = FirebaseDatabase.getInstance().getReference("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("online");
-// Write a string when this client loses connection
+
         presenceRef.onDisconnect().setValue(ServerValue.TIMESTAMP);
         presenceRef.setValue("true");
     }
@@ -259,7 +259,7 @@ getAccount();
                             return;
                         }
 
-                        // Get new FCM registration token
+                        
                         String token = task.getResult();
 databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("token").setValue(token);
 
@@ -284,13 +284,13 @@ databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser
                    mainMenuButton.setBackground(drawable);
 
                 }else if (drawable instanceof ColorDrawable) {
-                    // alpha value may need to be set again after this call
+                    
                     ColorDrawable colorDrawable = (ColorDrawable) drawable;
                     colorDrawable.setColor(Color.parseColor(user.getUserColor()));
                     mainMenuButton.setBackground(drawable);
 
                 }else if (drawable instanceof GradientDrawable) {
-                    // alpha value may need to be set again after this call
+                    
                     GradientDrawable gradientDrawable = (GradientDrawable) drawable;
                     gradientDrawable.setColor(Color.parseColor(user.getUserColor()));
                     mainMenuButton.setBackground(drawable);
@@ -536,7 +536,7 @@ if(FirebaseAuth.getInstance().getCurrentUser() != null){
     @Override
     protected void onDestroy() {
 
-        // Unregister since the activity is about to be closed.
+        
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
         super.onDestroy();
     }
