@@ -50,13 +50,13 @@ public class RecyclerIconAdapter extends RecyclerView.Adapter {
             ((IconHolder)holder).iconItemImage.setBackground(drawable);
 
         }else if (drawable instanceof ColorDrawable) {
-            // alpha value may need to be set again after this call
+           
             ColorDrawable colorDrawable = (ColorDrawable) drawable;
             colorDrawable.setColor(color);
             ((IconHolder)holder).iconItemImage.setBackground(drawable);
 
         }else if (drawable instanceof GradientDrawable) {
-            // alpha value may need to be set again after this call
+            
             GradientDrawable gradientDrawable = (GradientDrawable) drawable;
             gradientDrawable.setColor(color);
             ((IconHolder)holder).iconItemImage.setBackground(drawable);
